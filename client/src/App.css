@@ -1,0 +1,85 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto);
+
+:root{
+  font-family: 'circular', 'sans-serif' !important;
+  --bs-font-sans-serif: 'circular','sans-serif' !important;
+}
+
+/* Hide the up and down arrows in Webkit browsers (Chrome, Safari) */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Hide the up and down arrows in Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.customer-form{
+  background-color: black !important;
+  color: white !important;
+}
+
+/* .logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+} */
+
+
+.form-control:focus{
+  color: var(--bs-body-color) !important;
+  background-color: var(--bs-body-bg) !important;
+  border-color: #21252945 !important;
+  outline: 0 !important;
+  box-shadow: 0 0 0 .25rem #21252945 !important;
+}
+
+
+.bill-modal-body{
+  padding: 0px !important;
+  box-shadow: 0 0 20px 5px black !important;
+}
+
+
+.customer-table .btn.active{
+  color:white !important;
+  background-color: black !important;
+}
+
+.red-input-box{
+  background-color: red;
+  color:white
+}

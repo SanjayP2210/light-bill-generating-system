@@ -1,0 +1,86 @@
+/* InputBoxes.css */
+.new-bill-title{
+    font-weight: bold;
+        font-family: sans-serif;
+        text-shadow: 0 1px 0 #ccc,
+            0 2px 0 #c9c9c9,
+            0 3px 0 #bbb,
+            0 4px 0 #b9b9b9,
+            0 5px 0 #aaa,
+            0 6px 1px rgba(0, 0, 0, .1),
+            0 1px 3px rgba(0, 0, 0, .3),
+            0 3px 5px rgba(0, 0, 0, .2),
+            0 5px 10px rgba(0, 0, 0, .25),
+            0 10px 10px rgba(0, 0, 0, .2),
+            0 20px 20px rgba(0, 0, 0, .15);
+}
+
+.input-box {
+    padding: 5px !important;
+    background: black !important;
+    border-radius: 10px !important;
+    font-family: emoji !important;
+    box-shadow: 0 0 10px 5px black !important;
+}
+
+.textbox:focus {
+    color: var(--bs-body-color) !important;
+    border-color: none !important;
+    outline: 0 !important;
+    font-family: emoji !important;
+    /* box-shadow: 0 0 0 .25rem #21252945 !important; */
+}
+
+/* Base styles */
+.textbox {
+    display: block;
+    padding: .375rem .75rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: black;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: var(--bs-body-bg);
+    background-clip: padding-box;
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    text-align: center !important;
+    font-size: 30px !important;
+    /* Default font size */
+    width: 100px !important;
+    /* Default width */
+    height: 100px !important;
+    /* Default height */
+}
+
+/* Small screens (mobile) */
+@media (max-width: 600px) {
+    .textbox {
+        font-size: 20px !important;
+        width: 60px !important;
+        height: 60px !important;
+    }
+}
+
+/* Medium screens (tablet) */
+@media (min-width: 601px) and (max-width: 1024px) {
+    .textbox {
+        font-size: 25px !important;
+        /* Adjusted font size for medium screens */
+        width: 90px !important;
+        /* Adjusted width for medium screens */
+        height: 90px !important;
+        /* Adjusted height for medium screens */
+    }
+}
+
+/* Large screens (desktop) */
+@media (min-width: 1025px) {
+    .textbox {
+        font-size: 30px !important;
+        width: 100px !important;
+        height: 100px !important;
+    }
+}
