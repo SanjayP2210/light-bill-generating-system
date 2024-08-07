@@ -1,11 +1,9 @@
 /* eslint-disable react/prop-types */
-import { Table, Button } from "react-bootstrap";
+import { Table } from "react-bootstrap";
 import axios from "axios";
 import { formatDate } from "../../Utilities/Utils";
 import { useState } from "react";
-import { IconCheck, IconEdit, IconTrash, IconX } from "@tabler/icons-react";
- const commonClass =
-   "gap-6 d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2";
+import { IconCheck, IconEdit, IconList, IconX } from "@tabler/icons-react";
 
 const CustomerList = ({
   customers,
@@ -13,6 +11,7 @@ const CustomerList = ({
   setSelectedCustomer,
   showAlertBox,
   resetForm,
+  setShowLoader,
 }) => {
   const [currentTab, setCurrentTab] = useState("all");
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -32,7 +31,8 @@ const CustomerList = ({
 
   const handleActiveDeactive = async (id, item) => {
     try {
-      const response =await axios.patch(
+      setShowLoader(true);
+      const response = await axios.patch(
         `${apiUrl}/customers/active-deactive-customer/${id}`,
         {
           isActive: !item?.isActive,
@@ -41,9 +41,11 @@ const CustomerList = ({
       if (response) {
         fetchCustomers();
         resetForm();
+        setShowLoader(false);
       }
     } catch (error) {
       console.log("error", error);
+      setShowLoader(false);
     }
   };
 
@@ -57,9 +59,9 @@ const CustomerList = ({
     });
 
     if (filterItems?.length > 0) {
-      return filterItems.map((item, index) => {
+      return filterItems.map((item) => {
         return (
-          <tr style={{textAlign:'center'}} key={item?._id}>
+          <tr style={{ textAlign: "center" }} key={item?._id}>
             <td>
               {" "}
               <p
@@ -177,67 +179,52 @@ const CustomerList = ({
     <>
       <div className="card">
         <div className="card-body customer-table">
-          <ul className="nav nav-pills p-3 mb-3 rounded align-items-center card flex-row d-flex justify-content-center">
-            <li
+          <ul className="filter-buttons p-3 mb-3 rounded card flex-row center-item">
+            <button
               onClick={(e) => {
                 e.preventDefault();
                 setCurrentTab("all");
               }}
+              style={{ fontSize: "15px" }}
+              className={`btn ${
+                currentTab === "all" ? "active btn-dark" : "btn-outline-dark"
+              }`}
+              id="all-tab"
             >
-              <button
-                style={{ fontSize: "15px" }}
-                className={`btn ${commonClass} ${
-                  currentTab === "all" ? "active btn-dark" : "btn-outline-dark"
-                }`}
-                id="all-tab"
-              >
-                <i className="ti ti-list fill-white"></i>
-                <span className="d-none d-md-block fw-medium">
-                  All Customer
-                </span>
-              </button>
-            </li>
-            <li
+              <IconList style={{ width: "17px" }} />{" "}
+              <span className="fw-medium">All</span>
+            </button>
+            <button
               onClick={(e) => {
+                e.preventDefault();
                 setCurrentTab("active");
               }}
+              style={{ fontSize: "15px" }}
+              className={`btn ${
+                currentTab === "active" ? "active btn-dark" : "btn-outline-dark"
+              }`}
+              id="active-tab"
             >
-              <button
-                style={{ fontSize: "15px" }}
-                className={`btn ${commonClass} ${
-                  currentTab === "active"
-                    ? "active btn-dark"
-                    : "btn-outline-dark"
-                }`}
-                id="active-tab"
-              >
-                <i className="ti ti-check fill-white"></i>
-                <span className="d-none d-md-block fw-medium">
-                  Active Customer
-                </span>
-              </button>
-            </li>
-            <li
+              <IconCheck style={{ width: "20px", color: "green" }} />{" "}
+              {/* <i className="ti ti-check fill-white"></i> */}
+              <span className="fw-medium">Active</span>
+            </button>
+            <button
               onClick={(e) => {
                 e.preventDefault();
                 setCurrentTab("de-active");
               }}
+              style={{ fontSize: "15px" }}
+              className={`btn ${
+                currentTab === "de-active"
+                  ? "active btn-dark"
+                  : "btn-outline-dark"
+              }`}
+              id="deactive-tab"
             >
-              <button
-                style={{ fontSize: "15px" }}
-                className={`btn ${commonClass} ${
-                  currentTab === "de-active"
-                    ? "active btn-dark"
-                    : "btn-outline-dark"
-                }`}
-                id="deactive-tab"
-              >
-                <i className="ti ti-x fill-white"></i>
-                <span className="d-none d-md-block fw-medium">
-                  Deactive Customer
-                </span>
-              </button>
-            </li>
+              <IconX style={{ width: "20px", color: "red" }} />{" "}
+              <span className="fw-medium">Deactive</span>
+            </button>
           </ul>
 
           <div className="table-responsive border rounded">

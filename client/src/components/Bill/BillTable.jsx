@@ -3,6 +3,7 @@
 import axios from "axios";
 import { Button, ButtonGroup, Table } from "react-bootstrap";
 import { formatDate } from "../../Utilities/Utils";
+import { IconDownload, IconEdit, IconTrash } from "@tabler/icons-react";
 
 const BillTable = ({
   bills,
@@ -10,15 +11,26 @@ const BillTable = ({
   showAlertBox,
   fetchBills,
   setBillData,
+  setShowLoader,
 }) => {
   const apiUrl = import.meta.env.VITE_API_URL;
 
   const deleteBill = async (id) => {
-    const response = await axios.delete(`${apiUrl}/bills/${id}`);
-    if (!response.isError) {
-      showAlertBox(response.message);
+    try {
+      setShowLoader(true);
+      const response = await axios.delete(`${apiUrl}/bills/${id}`);
+      if (!response.isError) {
+        showAlertBox("Bill Deleted Successfully");
+        fetchBills();
+        setShowLoader(false);
+      } else {
+        setShowLoader(false);
+      }
+    } catch (error) {
+      setShowLoader(false);
+      console.error("Error Bill Deleted:", error);
+      showAlertBox("Error Bill Deleted");
     }
-    fetchBills();
   };
 
   return (
@@ -68,31 +80,34 @@ const BillTable = ({
                 <td>
                   <ButtonGroup size="sm">
                     <Button
+                      variant="outline-primary"
                       type="button"
                       onClick={(e) => {
                         e.preventDefault();
                         setBillData(bill);
                       }}
                     >
-                      Edit
+                      <IconEdit />
                     </Button>
                     <Button
+                      variant="outline-success"
                       type="button"
                       onClick={(e) => {
                         e.preventDefault();
                         generatePDFById(bill?._id);
                       }}
                     >
-                      Download
+                      <IconDownload />
                     </Button>
                     <Button
+                      variant="outline-danger"
                       type="button"
                       onClick={(e) => {
                         e.preventDefault();
                         deleteBill(bill?._id);
                       }}
                     >
-                      Delete
+                      <IconTrash />
                     </Button>
                   </ButtonGroup>
                 </td>

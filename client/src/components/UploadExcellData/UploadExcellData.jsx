@@ -3,12 +3,8 @@ import BillTable from "../Bill/BillTable";
 import axios from "axios";
 import { useState, useEffect, useRef } from "react";
 import UploadExcel from "../UploadExcel/UploadExcel";
-import GeneratePDF from "../GeneratePDF/GeneratePDF";
 import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
-import AlertBox from "../AlertBox/AlertBox";
-import CustomerSelector from "../CustomerSelector";
 import Select from "../Common/Select/Select";
-import * as XLSX from "xlsx";
 import { getSelectedFileData, loadData } from "../../Utilities/Utils";
 
 const UploadExcellData = ({ showAlertBox }) => {
@@ -142,7 +138,7 @@ const UploadExcellData = ({ showAlertBox }) => {
   return (
     <>
       <Container>
-        <div className="align-items-center justify-content-center d-flex">
+        <div className="center-item">
           <h1 className="mt-4">Bill System</h1>
         </div>
         <Row className="mb-3 mt-2">
@@ -189,7 +185,7 @@ const UploadExcellData = ({ showAlertBox }) => {
           <Col>
             <Card>
               <Card.Header className="customer-form">
-                <div className="align-items-center justify-content-center d-flex">
+                <div className="center-item">
                   <h4>Bill Table</h4>
                 </div>
               </Card.Header>

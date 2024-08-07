@@ -2,7 +2,7 @@
 import { Form } from "react-bootstrap";
 import Select from "./Common/Select/Select";
 
-const CustomerSelector = ({ customers, setCustomerId, customer_id ,...rest}) => {
+const CustomerSelector = ({ customers=[], setCustomerId, customer_id ,...rest}) => {
   const convertCustomerList = customers?.map((customer) => {
       return {
         value: customer?._id,

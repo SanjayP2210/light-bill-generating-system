@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
-import { Form, Button, Badge, InputGroup, Col, Row } from "react-bootstrap";
+import { Form, Button, Badge, Col, Row } from "react-bootstrap";
 import axios from "axios";
 import { getMaxDate, formatDateForInput } from '../../Utilities/Utils.js';
 
@@ -233,7 +233,7 @@ const BillForm = ({
             />
           </Col>
         </Form.Group>
-      <div className="m-2 d-flex justify-content-center align-items-center">
+      <div className="m-2 center-item">
         <Button variant="dark" style={{ marginRight: "10px" }}>
           Total Price <Badge bg="secondary">{form.total_price}</Badge>
         </Button>
