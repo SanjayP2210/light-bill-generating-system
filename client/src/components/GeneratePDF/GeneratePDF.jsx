@@ -1,11 +1,11 @@
 /* eslint-disable react/prop-types */
 
-import { Button, Form } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 
-const GeneratePDF = ({ generatePDF }) => {
+const GeneratePDF = ({ generatePDF, disabled }) => {
   return (
     <>
-      <Button variant="dark" onClick={generatePDF}>
+      <Button disabled={disabled} variant="dark" onClick={generatePDF}>
         Generate PDF
       </Button>
     </>

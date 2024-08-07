@@ -1,8 +1,8 @@
 @import url(https://fonts.googleapis.com/css?family=Roboto);
 
-:root{
+:root {
   font-family: 'circular', 'sans-serif' !important;
-  --bs-font-sans-serif: 'circular','sans-serif' !important;
+  --bs-font-sans-serif: 'circular', 'sans-serif' !important;
 }
 
 /* Hide the up and down arrows in Webkit browsers (Chrome, Safari) */
@@ -17,7 +17,7 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-.customer-form{
+.customer-form {
   background-color: black !important;
   color: white !important;
 }
@@ -59,7 +59,7 @@ input[type="number"] {
 } */
 
 
-.form-control:focus{
+.form-control:focus {
   color: var(--bs-body-color) !important;
   background-color: var(--bs-body-bg) !important;
   border-color: #21252945 !important;
@@ -68,18 +68,34 @@ input[type="number"] {
 }
 
 
-.bill-modal-body{
+.bill-modal-body {
   padding: 0px !important;
   box-shadow: 0 0 20px 5px black !important;
 }
 
 
-.customer-table .btn.active{
-  color:white !important;
+.customer-table .btn.active {
+  color: white !important;
   background-color: black !important;
 }
 
-.red-input-box{
+.red-input-box {
   background-color: red;
-  color:white
+  color: white
+}
+
+
+.center-item {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.filter-buttons {
+  flex-wrap: wrap;
+}
+
+.filter-buttons button {
+  min-width: 150px;
+  margin: 10px
 }

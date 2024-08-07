@@ -5,30 +5,38 @@ import axios from "axios";
 import CustomerForm from "../components/Customer/CustomerForm";
 import CustomerList from "../components/Customer/CustomerList";
 
-const Customers = ({ showAlertBox }) => {
+const Customers = ({ showAlertBox, setShowLoader}) => {
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const apiUrl = import.meta.env.VITE_API_URL;
-   const defaultFormValue = {
-     name: "",
-     mobile_number: "",
-     bill_no: "",
-     rent_date: "",
-     default_unit_per_rate: "",
-   };
-   const [form, setForm] = useState(selectedCustomer || defaultFormValue);
+  const defaultFormValue = {
+    name: "",
+    mobile_number: "",
+    bill_no: "",
+    rent_date: "",
+    default_unit_per_rate: "",
+  };
+  const [form, setForm] = useState(selectedCustomer || defaultFormValue);
 
-   const resetForm = () => {
-     setForm(defaultFormValue);
-   };
-  
+  const resetForm = () => {
+    setForm(defaultFormValue);
+  };
+
   useEffect(() => {
+     setShowLoader(true);
     fetchCustomers();
   }, []);
 
   const fetchCustomers = async () => {
-    const res = await axios.get(`${apiUrl}/customers/master-list`);
-    setCustomers(res.data);
+    try {
+      const res = await axios.get(`${apiUrl}/customers/master-list`);
+      setCustomers(res.data);
+      setShowLoader(false);
+    } catch (error) {
+      setShowLoader(false);
+      console.error("Error fetching customers:", error);
+      showAlertBox("Error fetching customers");
+    }
   };
 
   return (
@@ -38,7 +46,7 @@ const Customers = ({ showAlertBox }) => {
         <Col md={{ span: 6, offset: 3 }}>
           <Card>
             <Card.Header className="customer-form">
-              <div className="align-items-center justify-content-center d-flex">
+              <div className="center-item">
                 <h4>Customer Form</h4>
               </div>
             </Card.Header>
@@ -51,6 +59,7 @@ const Customers = ({ showAlertBox }) => {
                 resetForm={resetForm}
                 form={form}
                 setForm={setForm}
+                setShowLoader={setShowLoader}
               />
             </Card.Body>
           </Card>
@@ -58,7 +67,7 @@ const Customers = ({ showAlertBox }) => {
         <Col md={{ span: 10, offset: 1 }} className="mt-3">
           <Card>
             <Card.Header className="customer-form">
-              <div className="align-items-center justify-content-center d-flex">
+              <div className="center-item">
                 <h4>Customer Table</h4>
               </div>
             </Card.Header>
@@ -69,6 +78,7 @@ const Customers = ({ showAlertBox }) => {
                 setSelectedCustomer={setSelectedCustomer}
                 showAlertBox={showAlertBox}
                 resetForm={resetForm}
+                setShowLoader={setShowLoader}
               />
             </Card.Body>
           </Card>

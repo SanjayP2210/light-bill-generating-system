@@ -10,20 +10,21 @@ import { IconDownload, IconPlus, IconX } from "@tabler/icons-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-const InputBoxes = ({ showAlertBox }) => {
+const InputBoxes = ({ showAlertBox, setShowLoader }) => {
   const defaultFormValue = {
-    unit_per_rate: 8,
-    total_price: 0,
+    current_unit: 0,
     prev_unit: 0,
     used_unit: 0,
-    extra_unit: 0,
+    unit_per_rate: 8,
+    total_price: 0,
+    comments: "",
   };
   const textboxesRef = useRef([]);
   const [values, setValues] = useState(Array(6).fill(""));
   const [customers, setCustomers] = useState([]);
-  const [customerName, setCustomerName] = useState('')
+  const [customerName, setCustomerName] = useState("");
   const [customer_id, setCustomerId] = useState("");
-  // const [lastBillData, setLastBillData] = useState({});
+  const [lastBillData, setLastBillData] = useState(null);
   const [form, setForm] = useState(defaultFormValue);
   const [newValue, setNewValue] = useState(0);
   const [totalValue, setTotalValue] = useState(0);
@@ -34,7 +35,20 @@ const InputBoxes = ({ showAlertBox }) => {
   const tableRef = useRef(null);
   const handleCloseModal = () => {
     setShowModal(false);
+    if (isNewBillGenerated && lastBillData) {
+      setIsNewBillGenerated(false);
+      setValues(Array(6).fill(""));
+      setForm({
+        ...form,
+        current_unit: 0,
+        prev_unit: form?.current_unit || 0,
+        total_price: 0,
+        comments: "",
+      });
+      setNewValue(0);
+    }
   };
+
   const handleShowModal = () => {
     setComments("");
     setShowModal(true);
@@ -43,9 +57,15 @@ const InputBoxes = ({ showAlertBox }) => {
   useEffect(() => {
     if (customer_id) {
       setValues(Array(6).fill(""));
+      // fetchLastBill();
+      setCustomerName(customer_id?.name);
+      setForm({
+        ...form,
+        prev_unit: parseFloat(customer_id.last_bill_unit) || 0,
+        unit_per_rate: customer_id?.default_unit_per_rate,
+      });
     }
   }, [customer_id]);
-  // console.log("value", values);
 
   useEffect(() => {
     if (totalValue) {
@@ -58,140 +78,90 @@ const InputBoxes = ({ showAlertBox }) => {
     }
   }, [totalValue]);
 
-  const calculateAmount = (values) => {
-    let price = 0;
-    const stringValue = values?.join("");
-
-    const numberWithDecimal =
-      stringValue.slice(0, -2) + "." + stringValue.slice(-2);
-    if (isNaN(numberWithDecimal)) {
-      price = numberWithDecimal;
-      setNewValue(0);
-    } else {
-      if (numberWithDecimal?.length > 6) {
-        const { prev_unit, unit_per_rate } = form;
-        if (numberWithDecimal && prev_unit && unit_per_rate) {
-          const calUnit = parseFloat(numberWithDecimal) - prev_unit;
-          price = parseFloat(calUnit * unit_per_rate).toFixed(2);
-          setForm({
-            ...form,
-            used_unit: calUnit,
-            prev_unit,
-            unit_per_rate,
-          });
-          if (prev_unit > numberWithDecimal) {
-            showAlertBox("New unit is not greater than previous unit");
-            price = 0;
-          }
-        }
-        setTotalValue(price);
-      } else {
-        setTotalValue(price);
-        price = numberWithDecimal;
-      }
-      setNewValue(numberWithDecimal);
-    }
-    return price;
-  };
-
   const handleInput = (index, e) => {
+    e.target.value = e.target.value.replace(/[^0-9.]/g, "");
     const value = e.target.value;
-    if (!/^\d*$/.test(value)) {
-      // Allow only numeric input
-      e.target.value = value.replace(/[^\d]/g, "");
-    }
     const newValues = [...values];
     newValues[index] = value;
-    const val = customer_id ? calculateAmount(newValues) : 1;
-    if (val > 0) {
-      setValues(newValues);
-      if (
-        e.target.value.length > 0 &&
-        index < textboxesRef.current.length - 1
-      ) {
-        textboxesRef.current[index + 1].focus();
-      }
-    } else {
-      e.target.value = null;
-      e.target.focus();
-      newValues[index] = null;
-      setNewValue(0);
-      setValues(newValues);
-    }
-  };
+    if (customer_id) {
+      let price = 0;
+      const stringValue = newValues?.join("");
 
-  const handleInputAndCalculate = (index, e) => {
-    const value = e.target.value;
-
-    // Allow only numeric input
-    if (!/^\d*$/.test(value)) {
-      e.target.value = value.replace(/[^\d]/g, "");
-      return; // Prevent further processing
-    }
-
-    // Update the values array
-    const newValues = [...values];
-    newValues[index] = e.target.value;
-
-    // Calculate the amount based on new values
-    const stringValue = newValues.join("");
-    const numberWithDecimal =
-      stringValue.slice(0, -2) + "." + stringValue.slice(-2);
-    let price = 0;
-
-    if (!isNaN(numberWithDecimal)) {
-      if (numberWithDecimal.length > 6) {
-        const { prev_unit, unit_per_rate } = form;
-
-        if (prev_unit !== undefined && unit_per_rate !== undefined) {
-          const calUnit = parseFloat(numberWithDecimal) - prev_unit;
-          price = parseFloat(calUnit * unit_per_rate).toFixed(2);
-          if (prev_unit > parseFloat(numberWithDecimal)) {
-            showAlertBox("New unit is not greater than previous unit");
-            price = 0;
+      const numberWithDecimal =
+        stringValue.slice(0, -1) + "." + stringValue.slice(-1);
+      if (isNaN(numberWithDecimal)) {
+        price = numberWithDecimal;
+        setNewValue(0);
+      } else {
+        if (numberWithDecimal?.length > 6) {
+          const { prev_unit, unit_per_rate } = form;
+          if (numberWithDecimal && prev_unit && unit_per_rate) {
+            const calUnit = parseFloat(numberWithDecimal) - prev_unit;
+            price = parseFloat(calUnit * unit_per_rate).toFixed(2);
+            setForm({
+              ...form,
+              used_unit: parseFloat(calUnit).toFixed(2),
+              prev_unit,
+              unit_per_rate,
+            });
+            if (prev_unit > numberWithDecimal) {
+              showAlertBox("New unit is not greater than previous unit");
+              price = 0;
+              e.target.value = null;
+              e.target.focus();
+              newValues[index] = null;
+              setNewValue(0);
+              setValues(newValues);
+            } else {
+              setValues(newValues);
+              if (
+                e.target.value.length > 0 &&
+                index < textboxesRef.current.length - 1
+              ) {
+                textboxesRef.current[index + 1].focus();
+              }
+            }
+          }
+          setTotalValue(price);
+        } else {
+          setTotalValue(price);
+          price = numberWithDecimal;
+          setValues(newValues);
+          if (
+            e.target.value.length > 0 &&
+            index < textboxesRef.current.length - 1
+          ) {
+            textboxesRef.current[index + 1].focus();
           }
         }
-      } else {
-        price = numberWithDecimal;
+        setNewValue(numberWithDecimal);
       }
-    } else {
-      price = 0;
     }
-
-    // Update state based on the calculated price
-    setNewValue(numberWithDecimal);
-    setTotalValue(price);
-
-    // Move focus to the next textbox if applicable
-    if (
-      customer_id &&
-      price > 0 &&
-      e.target.value.length > 0 &&
-      index < textboxesRef.current.length - 1
-    ) {
-      textboxesRef.current[index + 1].focus();
-    } else {
-      e.target.value = null;
-      e.target.focus();
-      newValues[index] = null;
-      setNewValue(0);
-    }
-
-    // Update the values state
-    setValues(newValues);
   };
 
   const handleKeyDown = (index, e) => {
-    if (
-      e.key === "Backspace" ||
-      (e.key === "ArrowLeft" && e.target.value.length === 0 && index > 0)
-    ) {
-      const prevIndex = index === 0 ? index : index - 1;
-      textboxesRef.current[prevIndex].focus();
+    if (e.key === "Backspace") {
+      textboxesRef.current[index].value = "";
+      const newValues = [...values];
+      newValues[index] = "";
+      setValues(newValues);
+      if (index > 0) {
+        const prevIndex = index === 0 ? index : index - 1;
+        textboxesRef.current[prevIndex].focus();
+        textboxesRef.current[prevIndex].select();
+        e.preventDefault(); // Prevent cursor move
+      }
+    }
+    if (e.key === "ArrowLeft" && index > 0) {
+      e.preventDefault(); // Prevent cursor move
+      textboxesRef.current[index - 1].focus();
+      textboxesRef.current[index - 1].select();
     }
     if (e.key === "ArrowRight") {
+      e.preventDefault(); // Prevent cursor move
       const nextIndex = index === 5 ? index : index + 1;
       textboxesRef.current[nextIndex].focus();
+      textboxesRef.current[nextIndex].select();
     }
     if (e.key === "Tab" || e.key === " ") {
       e.preventDefault();
@@ -200,9 +170,12 @@ const InputBoxes = ({ showAlertBox }) => {
 
   const fetchCustomers = async () => {
     try {
+      setShowLoader(true);
       const res = await axios.get(`${apiUrl}/customers`);
       setCustomers(res.data);
+      setShowLoader(false);
     } catch (error) {
+      setShowLoader(false);
       console.error("Error fetching customers:", error);
       showAlertBox("Error fetching customers");
     }
@@ -235,49 +208,36 @@ const InputBoxes = ({ showAlertBox }) => {
 
   const handleDownloadPDF = () => {
     var today = new Date();
+    setShowLoader(true);
+    if (tableRef.current) {
+      html2canvas(tableRef.current, { scale: 1.5 }).then((canvas) => {
+        // Increased scale for better quality
+        // Create a new jsPDF instance
+        const pdf = new jsPDF({
+          orientation: "p", // Portrait orientation
+          unit: "mm", // Unit of measurement
+          format: "a4", // A4 paper size
+        });
 
-    // html2canvas(ele, { scale: 1.5 }).then((canvas) => {
-    //   const imgData = canvas.toDataURL("image/png");
-    //   const pdf = new jsPDF({
-    //     orientation: "portrait",
-    //     unit: "pt",
-    //     format: "a4",
-    //   });
-    //   const imgWidth = 400; // A4 width in pt
-    //   const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        // Convert the canvas to an image
+        const imgData = canvas.toDataURL("image/png");
 
-    //   pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-    //   pdf.save(`bill_${today.getTime()}.pdf`);
-    // });
-      if (tableRef.current) {
+        // Calculate the PDF dimensions based on A4 size
+        const imgWidth = 130; // Image width in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-         html2canvas(tableRef.current, { scale: 1.5 }).then((canvas) => {
-           // Increased scale for better quality
-           // Create a new jsPDF instance
-           const pdf = new jsPDF({
-             orientation: "p", // Portrait orientation
-             unit: "mm", // Unit of measurement
-             format: "a4", // A4 paper size
-           });
+        // Adjust the height to make the table appear smaller
+        const scaleFactor = 1; // Adjust this factor to scale the image
+        const scaledImgHeight = imgHeight * scaleFactor;
 
-           // Convert the canvas to an image
-           const imgData = canvas.toDataURL("image/png");
+        // Add the image to the PDF with scaled height
+        pdf.addImage(imgData, "PNG", 40, 10, imgWidth, scaledImgHeight);
 
-           // Calculate the PDF dimensions based on A4 size
-           const imgWidth = 130; // Image width in mm
-           const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-           // Adjust the height to make the table appear smaller
-           const scaleFactor = 1; // Adjust this factor to scale the image
-           const scaledImgHeight = imgHeight * scaleFactor;
-
-           // Add the image to the PDF with scaled height
-           pdf.addImage(imgData, "PNG", 40, 10, imgWidth, scaledImgHeight);
-
-           // Save the PDF
-           pdf.save(`bill_${customer_id?.name}_${today.getTime()}.pdf`);
-         });
-      }
+        // Save the PDF
+        pdf.save(`bill_${customer_id?.name}_${today.getTime()}.pdf`);
+        setShowLoader(false);
+      });
+    }
   };
 
   const addBill = async () => {
@@ -287,23 +247,24 @@ const InputBoxes = ({ showAlertBox }) => {
         customer_id: customer_id?.value,
         comments,
       };
+      setShowLoader(true);
       const res = await axios.post(`${apiUrl}/bills`, formData);
       if (res?.data?.isError) {
-        // setLastBillData(null);
+        setLastBillData(null);
         setIsNewBillGenerated(false);
         showAlertBox(res?.data?.message);
       } else {
-        const data = res?.data?.data;
-        setIsNewBillGenerated(true);
         setForm({
           ...form,
-          prev_unit: data.current_unit || 0,
-          unit_per_rate: data?.unit_per_rate,
+          comments,
         });
-        // setLastBillData(res.data?.data);
+        setIsNewBillGenerated(true);
+        setLastBillData(res.data?.data);
         showAlertBox("New Bill Added Successfully", "success");
+        setShowLoader(false);
       }
     } catch (error) {
+      setShowLoader(false);
       console.error("Error adding bill:", error);
       showAlertBox("Error adding bill");
     }
@@ -313,23 +274,11 @@ const InputBoxes = ({ showAlertBox }) => {
     fetchCustomers();
   }, []);
 
-  useEffect(() => {
-    if (customer_id) {
-      // fetchLastBill();
-      setCustomerName(customer_id?.name)
-      setForm({
-        ...form,
-        prev_unit: customer_id.last_bill_unit || 0,
-        unit_per_rate: customer_id?.default_unit_per_rate,
-      });
-    }
-  }, [customer_id]);
-
   return (
     <>
-      <Col className="d-flex justify-content-center mt-5" sm={12}>
+      <Col className="center-item mt-5" sm={12}>
         <div>
-          <div className="d-flex justify-content-center mb-3">
+          <div className="center-item mb-3">
             <h2 className="new-bill-title">Add Your New Bill</h2>
           </div>
           <Col
@@ -380,13 +329,13 @@ const InputBoxes = ({ showAlertBox }) => {
 
           {customer_id && form?.prev_unit && (
             <>
-              <div className="d-flex justify-content-center mt-3">
+              <div className="center-item mt-3">
                 <h4 className="new-bill-title">
                   Previous Bill :-{" "}
                   <span style={{ color: "blue" }}> {form?.prev_unit}</span>
                 </h4>
               </div>
-              <div className="d-flex justify-content-center mt-3">
+              <div className="center-item mt-3">
                 <h4 className="new-bill-title">
                   Unit Rate :-{" "}
                   <span style={{ color: "blue" }}>
@@ -396,14 +345,7 @@ const InputBoxes = ({ showAlertBox }) => {
                 </h4>
               </div>
               {totalValue > 6 && (
-                <div
-                  className=""
-                  style={{
-                    width: "400px",
-                    marginLeft: "190px",
-                    marginTop: "30px",
-                  }}
-                >
+                <div className="center-item mt-3">
                   <h4 className="new-bill-title">
                     Total Bill is :-{" "}
                     <span style={{ color: "blue" }}>{totalValue || 0}</span>
@@ -412,37 +354,7 @@ const InputBoxes = ({ showAlertBox }) => {
               )}
               <br />
               {form?.prev_unit && newValue?.length > 6 && (
-                // <div id="dynamicTable">
-                //   <div
-                //     style={{
-                //       width: "600px",
-                //     }}
-                //   >
-                //     <div
-                //       style={{
-                //         marginLeft: "50px",
-                //         justifyContent: "center",
-                //         display: "flex",
-                //       }}
-                //     >
-                //       <h3 className="titles">Light Bill Of {todayDate}</h3>
-                //     </div>
-                //     <hr />
-                //   </div>
-                //   <table
-                //     // style={styles.table}
-                //     className="table table-bordered my-table"
-                //   >
-                //     <thead className="thead-dark">
-                //       <tr>
-                //         <th className="table-dark text-center">Date</th>
-                //         <th className="table-dark text-center">{todayDate}</th>
-                //       </tr>
-                //     </thead>
-                //     <tbody>{generateTableRows(lastBillData)}</tbody>
-                //   </table>
-                // </div>
-                <div className="d-flex justify-content-center mt-3">
+                <div className="center-item mt-3">
                   <Button
                     variant="outline-dark"
                     type="button"
@@ -471,15 +383,17 @@ const InputBoxes = ({ showAlertBox }) => {
                 comments={comments}
                 customerName={customerName}
                 setComments={setComments}
+                isNewBillGenerated={isNewBillGenerated}
               />
             </Card.Body>
           </Card>
         </Modal.Body>
-        <Modal.Footer className="m-2 d-flex justify-content-center align-items-center">
+        <Modal.Footer className="m-2 center-item align-items-center">
           <div>
             <Button
               variant="outline-dark"
               style={{ marginRight: "10px" }}
+              disabled={isNewBillGenerated}
               type="submit"
               onClick={addBill}
             >

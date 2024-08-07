@@ -6,18 +6,35 @@ import xlsx from 'xlsx';
 import fs from 'fs';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import pkg from 'pdfkit-table';
+import Customer from '../models/Customer.js';
+
+const { Table } = pkg;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const router = express.Router();
-import pkg from 'pdfkit-table';
-import customer from '../models/Customer.js';
-const { Table } = pkg;
 
 function convertToDate(dateStr) {
-    const [day, month, year] = dateStr.split('/').map(Number); // Split string and convert to numbers
-    // Note: JavaScript months are 0-based (0 = January, 11 = December)
-    return new Date(year, month - 1, day); // Create a new Date object
+    const [day, month, year] = dateStr.split('/').map(Number);
+    return new Date(year, month - 1, day);
 }
+
+const updateLastBillOfCustomer = async (customer_id) => {
+    try {
+        const lastBill = await Bill.findOne({ customer_id }).sort({ _id: -1 });
+        if (lastBill) {
+            const updatedCustomer = await Customer.findByIdAndUpdate(
+                customer_id,
+                { last_bill_unit: lastBill.current_unit },
+                { new: true }
+            );
+            return updatedCustomer ? true : false;
+        }
+    } catch (error) {
+        console.error('Error updating customer:', error);
+        return false;
+    }
+};
 
 // Get all bills
 router.get('/', async (req, res) => {
@@ -25,7 +42,7 @@ router.get('/', async (req, res) => {
         const bills = await Bill.find().populate('customer_id', 'name bill_no').sort({ date: -1 }).exec();
         res.json(bills);
     } catch (err) {
-        res.json({ message: err });
+        res.status(500).json({ message: err.message });
     }
 });
 
@@ -56,29 +73,23 @@ router.post('/', async (req, res) => {
 
     try {
         const savedBill = await bill.save();
-        if (savedBill) {
-           const updtedCustomer =  await customer.findByIdAndUpdate(
-               customer_id,
-                { last_bill_unit: current_unit },
-                { new: true }
-            );
-            if (updtedCustomer) {
-                res.json({
-                    message: 'New Litebill saved and Customer updated successfully!',
-                    data: savedBill,
-                    isError : false
-                });
-            }
-        } else {
+        const updatedCustomer = await updateLastBillOfCustomer(customer_id);
+        if (updatedCustomer) {
             res.json({
-                message: 'Error while save new bill!',
+                message: 'New Litebill saved and Customer updated successfully!',
+                data: savedBill,
+                isError: false
+            });
+        } else {
+            res.status(500).json({
+                message: 'Error while saving new bill!',
                 data: null,
                 isError: true
             });
         }
     } catch (err) {
-        res.json({
-            message: `Error while save new bill! ${err}`,
+        res.status(500).json({
+            message: `Error while saving new bill: ${err.message}`,
             data: null,
             isError: true
         });
@@ -101,7 +112,6 @@ router.put('/:id', async (req, res) => {
 
     try {
         const bill = await Bill.findById(id);
-
         if (!bill) {
             return res.status(404).json({ message: 'Bill not found' });
         }
@@ -113,57 +123,47 @@ router.put('/:id', async (req, res) => {
         bill.used_unit = used_unit ? parseFloat(used_unit).toFixed(2) : used_unit;
         bill.extra_unit = extra_unit ? parseFloat(extra_unit).toFixed(2) : extra_unit;
         bill.comments = comments;
-        bill.date = date ? new Date(date) : '';
+        bill.date = date ? convertToDate(date) : bill.date;
 
         const updatedBill = await bill.save();
-
-        if (updatedBill) {
-            const lastBill = await Bill.findOne({ customer_id: bill?.customer_id }).sort({ _id: -1 });
-            if (lastBill) { 
-                const updtedCustomer =  await customer.findByIdAndUpdate(
-                    bill?.customer_id,
-                    { last_bill_unit: lastBill?.current_unit },
-                     { new: true }
-                 );
-                 if (updtedCustomer) {
-                     res.json({
-                         message: 'Litebill updated and Customer updated successfully!',
-                         data: updatedBill,
-                         isError : false
-                     });
-                 }
-            }
-        } else {
+        const updatedCustomer = await updateLastBillOfCustomer(bill.customer_id);
+        if (updatedCustomer) {
             res.json({
-                message: 'Error while save new bill!',
+                message: 'Bill updated and Customer updated successfully!',
+                data: updatedBill,
+                isError: false
+            });
+        } else {
+            res.status(500).json({
+                message: 'Error while updating bill!',
                 data: null,
                 isError: true
             });
         }
     } catch (err) {
-        res.json({
-            message: `Error while save new bill! ${err.message}`,
+        res.status(500).json({
+            message: `Error while updating bill: ${err.message}`,
             data: null,
             isError: true
         });
     }
 });
 
+// Get bills by customer ID
 router.get('/get-bill-by-customer-id/:customer_id', async (req, res) => {
     try {
         const customer_id = req.params.customer_id;
-        console.log('customer_id', customer_id);
-        const lastBill = await Bill.find({ customer_id }).populate('customer_id', 'name bill_no').sort({ date: -1 }).exec();
-        if (lastBill) {
+        const bills = await Bill.find({ customer_id }).populate('customer_id', 'name bill_no').sort({ date: -1 }).exec();
+        if (bills.length > 0) {
             res.json({
-                data: lastBill,
-                message: 'Bill Get Successfully',
+                data: bills,
+                message: 'Bills retrieved successfully',
                 isError: false
             });
         } else {
-            res.json({
+            res.status(404).json({
                 data: [],
-                message: 'No Bill Found For This Customer. Please Create New Bill',
+                message: 'No bills found for this customer. Please create a new bill',
                 isError: true
             });
         }
@@ -172,155 +172,50 @@ router.get('/get-bill-by-customer-id/:customer_id', async (req, res) => {
     }
 });
 
+// Format date for PDF
 const formatDate = (date) => {
     const options = { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true };
     return new Intl.DateTimeFormat('en-US', options).format(date);
 };
 
-// Generate PDF
-const generateTableForPDf = async (bills, filePath) => {
+// Generate PDF with table
+const generateTableForPDF = async (bills, filePath) => {
     const doc = new PDFDocument();
-
-    // Pipe the PDF into the response
-    // doc.pipe(res);
     doc.pipe(fs.createWriteStream(filePath));
-    const data = bills.map((bill, index) => {
-        const {
-            current_unit,
-            prev_unit,
-            unit_per_rate,
-            total_price,
-            used_unit,
-            extra_unit,
-            comments,
-            date
-        } = bill;
-        return [
-            current_unit,
-            prev_unit,
-            unit_per_rate,
-            total_price,
-            used_unit,
-            extra_unit,
-            comments,
-            date
-        ]
-    })
-    // Define table data
-    console.log('data', data);
+
+    const data = bills.map(bill => [
+        bill.customer_id.name,
+        bill.current_unit,
+        bill.prev_unit,
+        bill.unit_per_rate,
+        bill.total_price,
+        formatDate(new Date(bill.date))
+    ]);
+
     const tableData = {
         headers: ['Customer', 'Current Unit', 'Previous Unit', 'Unit Per Rate', 'Total Price', 'Date'],
         rows: data
     };
 
     const table = new Table(doc, {
-        width: 500, // Table width
-        padding: 5, // Cell padding
-        columns: [150, 150, 150] // Column widths
+        width: 500,
+        padding: 5,
+        columns: [100, 100, 100, 100, 100, 100]
     });
 
     table.add(tableData);
     table.draw();
 
-    // Finalize the PDF and end the stream
-    doc.end();
-}
-
-// Function to create PDF
-const createPDF = async (bills, filePath) => {
-    const doc = new PDFDocument();
-    doc.pipe(fs.createWriteStream(filePath));
-
-    // Title
-    doc.fontSize(18).text('Bills', { align: 'center' });
-    doc.moveDown();
-
-    // Table Header
-    doc.fontSize(12).font('Helvetica-Bold');
-    const tableHeader = ['Customer', 'Current Unit', 'Previous Unit', 'Unit Per Rate', 'Total Price', 'Date'];
-    const tableWidth = doc.page.width - 72 * 2; // Page width minus margins
-    const columnWidth = tableWidth / tableHeader.length;
-    const startX = 72; // X position of the table
-    const startY = 100; // Y position of the table
-
-    // Draw table header
-    tableHeader.forEach((header, i) => {
-        doc.text(header, startX + i * columnWidth, startY, { width: columnWidth, align: 'center' });
-    });
-    doc.moveDown();
-
-    // Draw header border
-    doc.strokeColor('black').lineWidth(1)
-        .rect(startX, startY - 10, tableWidth, 20) // Header border
-        .stroke();
-
-    // Draw column borders
-    for (let i = 1; i < tableHeader.length; i++) {
-        doc.moveTo(startX + i * columnWidth, startY - 10)
-            .lineTo(startX + i * columnWidth, startY + 10)
-            .stroke();
-    }
-
-    // Draw table rows and borders
-    doc.font('Helvetica');
-    const rows = 10; // Number of rows (adjust as needed)
-    const rowHeight = 20;
-    bills.forEach((bill, index) => {
-        const yPos = startY + 20 + index * rowHeight; // Position for each row
-        doc.text(bill.customer_id.name || 'N/A', 72, 120 + index * 20, { width: columnWidth, align: 'center' });
-        doc.text(bill.current_unit || 'N/A', 72 + columnWidth, 120 + index * 20, { width: columnWidth, align: 'center' });
-        doc.text(bill.prev_unit || 'N/A', 72 + columnWidth * 2, 120 + index * 20, { width: columnWidth, align: 'center' });
-        doc.text(bill.unit_per_rate || 'N/A', 72 + columnWidth * 3, 120 + index * 20, { width: columnWidth, align: 'center' });
-        doc.text(bill.total_price || 'N/A', 72 + columnWidth * 4, 120 + index * 20, { width: columnWidth, align: 'center' });
-        doc.text(formatDate(new Date(bill.date), 'MMM dd hh:mm a') || 'N/A', 72 + columnWidth * 5, 120 + index * 20, { width: columnWidth, align: 'center' });
-        // Draw row border
-        doc.strokeColor('black').lineWidth(1)
-            .rect(startX, yPos - rowHeight + 2, tableWidth, rowHeight) // Row border
-            .stroke();
-
-        // Draw vertical column border for the last row
-        if (index === rows - 1) {
-            doc.strokeColor('black').lineWidth(1)
-                .moveTo(startX + tableWidth, startY - 10)
-                .lineTo(startX + tableWidth, yPos + rowHeight)
-                .stroke();
-        }
-    });
     doc.end();
 };
 
+// Generate PDF for all bills
 router.get('/generate-pdf', async (req, res) => {
     try {
         const bills = await Bill.find().populate('customer_id');
         const filePath = path.join(__dirname, '../files/bills.pdf');
 
-        await generateTableForPDf(bills, filePath);
-
-        res.download(filePath, (err) => {
-            if (err) {
-                res.status(500).json({ message: 'Error while downloading the file.', err: err });
-            } else {
-                fs.unlink(filePath, (unlinkErr) => {
-                    if (unlinkErr) console.error('Error deleting file:', unlinkErr);
-                });
-            }
-        });
-    } catch (err) {
-        res.status(500).json({ message: 'Error generating PDF: ' + err.message });
-    }
-});
-
-router.get('/generate-pdf-by-lite-bill/:id', async (req, res) => {
-    try {
-        const id = req.params.id;
-        const bills = await Bill.find({ _id: id }).populate('customer_id');
-        if (bills.length === 0) {
-            return res.status(404).json({ message: 'No bills found with the provided ID.' });
-        }
-
-        const filePath = path.join(__dirname, '../files/bills.pdf');
-
-        await generateTableForPDf(bills, filePath);
+        await generateTableForPDF(bills, filePath);
 
         res.download(filePath, (err) => {
             if (err) {
@@ -336,114 +231,121 @@ router.get('/generate-pdf-by-lite-bill/:id', async (req, res) => {
     }
 });
 
+// Generate PDF for a specific bill by ID
+router.get('/generate-pdf-by-lite-bill/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const bills = await Bill.find({ _id: id }).populate('customer_id');
+        if (bills.length === 0) {
+            return res.status(404).json({ message: 'No bills found with the provided ID.' });
+        }
+
+        const filePath = path.join(__dirname, '../files/bills.pdf');
+
+        await generateTableForPDF(bills, filePath);
+
+        res.download(filePath, (err) => {
+            if (err) {
+                res.status(500).json({ message: 'Error while downloading the file.', err });
+            } else {
+                fs.unlink(filePath, (unlinkErr) => {
+                    if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+                });
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ message: 'Error generating PDF: ' + err.message });
+    }
+});
+
+// Get the last bill for a customer
 router.get('/get-last-bill/:customer_id', async (req, res) => {
     try {
         const customer_id = req.params.customer_id;
-        console.log('customer_id', customer_id);
         const lastBill = await Bill.findOne({ customer_id }).sort({ _id: -1 });
         if (lastBill) {
             res.json({
                 data: lastBill,
-                message: 'Bill Get Successfully',
+                message: 'Bill retrieved successfully',
                 isError: false
             });
         } else {
-            res.json({
+            res.status(404).json({
                 data: [],
-                message: 'No Bill Found For This Customer. Please Create New Bill',
+                message: 'No bill found for this customer. Please create a new bill',
                 isError: true
             });
         }
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    } catch (err) {
+        res.status(500).json({ message: 'Error retrieving last bill: ' + err.message });
     }
 });
 
-router.post('/upload-data-from-table/:customer_id', (req, res) => {
-    const customer_id = req.params.customer_id;
-    const data = req.body;
-
-    data.forEach(async row => {
-        const {
-            current_unit,
-            prev_unit,
-            unit_per_rate,
-            total_price,
-            used_unit,
-            extra_unit,
-            comments,
-            date
-        } = row;
-        const bill = new Bill({
-            customer_id,
-            unit_per_rate,
-            current_unit: current_unit ? parseFloat(current_unit).toFixed(2) : current_unit,
-            prev_unit: prev_unit ? parseFloat(prev_unit).toFixed(2) : prev_unit,
-            total_price: total_price ? parseFloat(total_price).toFixed(2) : total_price,
-            used_unit: used_unit ? parseFloat(used_unit).toFixed(2) : used_unit,
-            extra_unit: extra_unit ? parseFloat(extra_unit).toFixed(2) : extra_unit,
-            comments,
-            date: date ? convertToDate(date) : date,
-        });
-
-        try {
-            await bill.save();
-        } catch (err) {
-            console.log(err);
-            res.send({
-                messgae: err,
-                isError: true
-            });
-        }
-    });
-    res.send({
-        messgae: 'File uploaded and data added',
-        isError: false
-    });
+// Handle Excel file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    }
 });
 
-// Upload Excel
-const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-router.post('/upload-excel/:customer_id', upload.single('file'), (req, res) => {
-    const customer_id = req.params.customer_id;
-    const workbook = xlsx.read(req.file.buffer);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const data = xlsx.utils.sheet_to_json(sheet);
+router.post('/upload-excel', upload.single('file'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+    }
 
-    data.forEach(async row => {
-        const {
-            current_unit,
-            prev_unit,
-            unit_per_rate,
-            total_price,
-            used_unit,
-            extra_unit,
-            comments,
-            date
-        } = row;
-        const bill = new Bill({
-            customer_id,
-            unit_per_rate,
-            current_unit: current_unit ? parseFloat(current_unit).toFixed(2) : current_unit,
-            prev_unit: prev_unit ? parseFloat(prev_unit).toFixed(2) : prev_unit,
-            total_price: total_price ? parseFloat(total_price).toFixed(2) : total_price,
-            used_unit: used_unit ? parseFloat(used_unit).toFixed(2) : used_unit,
-            extra_unit: extra_unit ? parseFloat(extra_unit).toFixed(2) : extra_unit,
-            comments,
-            date: date ? convertToDate(date) : date,
+    const filePath = req.file.path;
+    const workbook = xlsx.readFile(filePath);
+
+    const sheetNames = workbook.SheetNames;
+    const bills = [];
+
+    sheetNames.forEach(sheetName => {
+        const worksheet = workbook.Sheets[sheetName];
+        const data = xlsx.utils.sheet_to_json(worksheet, { header: 1 });
+
+        data.forEach((row, index) => {
+            if (index === 0) return; // Skip header row
+            const [
+                customer_id,
+                current_unit,
+                prev_unit,
+                unit_per_rate,
+                total_price,
+                used_unit,
+                extra_unit,
+                comments,
+                date
+            ] = row;
+
+            bills.push({
+                customer_id,
+                current_unit,
+                prev_unit,
+                unit_per_rate,
+                total_price,
+                used_unit,
+                extra_unit,
+                comments,
+                date: convertToDate(date)
+            });
         });
-
-        try {
-            await bill.save();
-        } catch (err) {
-            console.log(err);
-        }
     });
 
-    res.send('File uploaded and data added');
+    try {
+        const savedBills = await Bill.insertMany(bills);
+        res.json({ message: 'Excel file data inserted successfully!', data: savedBills });
+    } catch (err) {
+        res.status(500).json({ message: 'Error inserting data from Excel file: ' + err.message });
+    } finally {
+        fs.unlink(filePath, (err) => {
+            if (err) console.error('Error deleting file:', err);
+        });
+    }
 });
 
 // Delete a Bill
@@ -454,11 +356,19 @@ router.delete('/:id', async (req, res) => {
         if (!deletedBill) {
             return res.status(404).json({ message: 'Bill not found' });
         }
-
-        res.json({
-            message: 'Bill Deleted Successfully',
-            isError: false
-        });
+        const updtedCustomer = await updateLastBillOfCustomer(deletedBill.customer_id);
+        if (updtedCustomer) {
+            res.json({
+                message: 'Bill Deleted Successfully',
+                isError: false
+            });
+        } else {
+            res.json({
+                message: 'Error while save new bill!',
+                data: null,
+                isError: true
+            });
+        }
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

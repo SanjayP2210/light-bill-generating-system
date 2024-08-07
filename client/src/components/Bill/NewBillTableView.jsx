@@ -12,15 +12,17 @@ const NewBillTableView = ({
   comments,
   setComments,
   customerName,
+  isNewBillGenerated,
 }) => {
   const generateTableRows = () => {
     const tableData = Object.keys(tableValue);
+    console.log("tableValue", tableValue);
     const fileredData = tableData?.map((row, index) => {
       const key = row;
       const value = tableValue[key];
       return (
         <tr key={index}>
-          {key === "comments" && !value ? (
+          {key === "comments" && !isNewBillGenerated ? (
             <>
               <td className="text-center">Comment</td>
               <td>
