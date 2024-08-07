@@ -4,6 +4,7 @@ import { Form, Button, Row, Col } from "react-bootstrap";
 import axios from "axios";
 import Select from "../Common/Select/Select";
 import { formatDateForInput, getMaxDate } from "../../Utilities/Utils";
+import { IconPlus, IconX } from "@tabler/icons-react";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 const billNumberOptions = [
@@ -18,12 +19,13 @@ const CustomerForm = ({
   showAlertBox,
   resetForm,
   setForm,
-  form
+  form,
+  setShowLoader,
 }) => {
   // State hooks
   const maxDate = getMaxDate(); // Holds the maximum allowed date for the date input
   const [rentDate, setRentDate] = useState(""); // Holds the currently selected date
-  const [billNo, setBillNo] = useState("1");
+  const [billNo, setBillNo] = useState(null);
   // Handle change in date input
   const handleDateChange = (event) => {
     const dateValue = event.target.value;
@@ -66,31 +68,42 @@ const CustomerForm = ({
 
   // Handle form submission
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form submission
-    const { name, mobile_number, default_unit_per_rate } = form;
-    if (mobile_number && mobile_number?.length < 10) {
-      showAlertBox("Mobile Number must be 10 digits", "danger");
-      return;
-    }
-    const formData = {
-      name,
-      mobile_number,
-      rent_date: rentDate,
-      bill_no: billNo?.value,
-      default_unit_per_rate,
-    };
-    const response = selectedCustomer
-      ? await axios.put(`${apiUrl}/customers/${selectedCustomer._id}`, formData)
-      : await axios.post(`${apiUrl}/customers`, formData);
+    try {
+      e.preventDefault(); // Prevent default form submission
+      const { name, mobile_number, default_unit_per_rate } = form;
+      if (mobile_number && mobile_number?.length < 10) {
+        showAlertBox("Mobile Number must be 10 digits", "danger");
+        return;
+      }
+      const formData = {
+        name,
+        mobile_number,
+        rent_date: rentDate,
+        bill_no: billNo?.value,
+        default_unit_per_rate,
+      };
+      setShowLoader(true);
+      const response = selectedCustomer
+        ? await axios.put(
+            `${apiUrl}/customers/${selectedCustomer._id}`,
+            formData
+          )
+        : await axios.post(`${apiUrl}/customers`, formData);
 
-    if (response?.data?.isError) {
-      showAlertBox(response?.data?.message, "danger");
-    } else {
-      fetchCustomers();
-      resetForm();
-      setRentDate(maxDate);
-      setSelectedCustomer(null);
-      showAlertBox("Customer Save Successfully", "Success");
+      if (response?.data?.isError) {
+        showAlertBox(response?.data?.message, "danger");
+        setShowLoader(false);
+      } else {
+        fetchCustomers();
+        resetForm();
+        setRentDate(maxDate);
+        setSelectedCustomer(null);
+        showAlertBox("Customer Save Successfully", "Success");
+        setShowLoader(false);
+      }
+    } catch (error) {
+      showAlertBox(error, "danger");
+      setShowLoader(false);
     }
   };
 
@@ -205,10 +218,11 @@ const CustomerForm = ({
           />
         </Col>
       </Form.Group>
-      <div className="mt-2 d-flex justify-content-center">
+      <div className="mt-2 center-item">
         <Button
           variant="outline-dark"
           type="submit"
+          className="center-item"
           disabled={
             !form.name ||
             !rentDate ||
@@ -217,7 +231,21 @@ const CustomerForm = ({
             !form.default_unit_per_rate
           }
         >
+          <IconPlus style={{ width: "20px" }} />{" "}
           {selectedCustomer ? "Update" : "Add"} Customer
+        </Button>
+        <Button
+          variant="outline-dark"
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            resetForm();
+            setBillNo(null);
+          }}
+          className="center-item"
+          style={{ marginLeft: "20px" }}
+        >
+          <IconX style={{ width: "20px", color: "red" }} /> Cancel
         </Button>
       </div>
     </Form>

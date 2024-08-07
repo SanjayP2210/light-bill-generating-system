@@ -7,10 +7,10 @@ import GeneratePDF from "../components/GeneratePDF/GeneratePDF";
 import { Container, Row, Col, Card, Modal } from "react-bootstrap";
 import CustomerSelector from "../components/CustomerSelector";
 
-const Bill = ({ showAlertBox }) => {
+const Bill = ({ showAlertBox, setShowLoader }) => {
   const [customers, setCustomers] = useState([]);
   const [bills, setBills] = useState([]);
-  const [customer_id, setCustomerId] = useState("");
+  const [customer_id, setCustomerId] = useState(null);
   const [prev_unit, setPrev_unit] = useState(0);
   const [isPrevUnitSet, setIsPrevUnitSet] = useState(false);
   const [billData, setBillData] = useState(null);
@@ -27,11 +27,17 @@ const Bill = ({ showAlertBox }) => {
   const apiUrl = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
+    setShowLoader(true);
     fetchCustomers();
   }, []);
 
   useEffect(() => {
-    if (customer_id) {
+    if (customer_id === null) {
+      setBills([]);
+      setBillData(null);
+      setPrev_unit(0);
+      setIsPrevUnitSet(false);
+    } else {
       fetchBillByCustomerId();
     }
   }, [customer_id]);
@@ -40,7 +46,9 @@ const Bill = ({ showAlertBox }) => {
     try {
       const res = await axios.get(`${apiUrl}/customers`);
       setCustomers(res.data);
+      setShowLoader(false);
     } catch (error) {
+      setShowLoader(false);
       console.error("Error fetching customers:", error);
       showAlertBox("Error fetching customers");
     }
@@ -48,6 +56,7 @@ const Bill = ({ showAlertBox }) => {
 
   const fetchBillByCustomerId = async () => {
     try {
+      setShowLoader(true);
       const res = await axios.get(
         `${apiUrl}/bills/get-bill-by-customer-id/${customer_id?.value}`
       );
@@ -61,7 +70,9 @@ const Bill = ({ showAlertBox }) => {
           setIsPrevUnitSet(true);
         }
       }
+      setShowLoader(false);
     } catch (error) {
+      setShowLoader(false);
       console.error("Error fetching bills:", error);
       showAlertBox("Error fetching bills");
     }
@@ -113,7 +124,7 @@ const Bill = ({ showAlertBox }) => {
   return (
     <>
       <Container>
-        <div className="align-items-center justify-content-center d-flex">
+        <div className="center-item">
           <h1 className="mt-4">Bill System</h1>
         </div>
         <Row className="mb-4">
@@ -125,14 +136,14 @@ const Bill = ({ showAlertBox }) => {
             />
           </Col>
           <Col md={2} style={{ marginTop: "30px" }}>
-            <GeneratePDF generatePDF={generatePDF} />
+            <GeneratePDF disabled={(!customer_id?.value && bills.length === 0)} generatePDF={generatePDF} />
           </Col>
         </Row>
         <Row>
           <Col>
             <Card>
               <Card.Header className="customer-form">
-                <div className="align-items-center justify-content-center d-flex">
+                <div className="center-item">
                   <h4>Bill Table</h4>
                 </div>
               </Card.Header>
@@ -143,6 +154,7 @@ const Bill = ({ showAlertBox }) => {
                   showAlertBox={showAlertBox}
                   fetchBills={fetchBillByCustomerId}
                   setBillData={setBillData}
+                  setShowLoader={setShowLoader}
                 />
               </Card.Body>
             </Card>
@@ -152,7 +164,7 @@ const Bill = ({ showAlertBox }) => {
           <Modal.Body className="bill-modal-body">
             <Card>
               <Card.Header className="customer-form">
-                <div className="align-items-center justify-content-center d-flex">
+                <div className="center-item">
                   <h4>Bill Form</h4>
                 </div>
               </Card.Header>
@@ -166,6 +178,7 @@ const Bill = ({ showAlertBox }) => {
                   billData={billData}
                   fetchBillByCustomerId={fetchBillByCustomerId}
                   handleCloseModal={handleCloseModal}
+                  setShowLoader={setShowLoader}
                 />
               </Card.Body>
             </Card>

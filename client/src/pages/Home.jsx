@@ -2,16 +2,18 @@
 import { Col } from "react-bootstrap";
 import InputBoxes from "../components/Common/InputBoxes/InputBoxes";
 
-const Home = ({ showAlertBox }) => {
+const Home = ({ showAlertBox, setShowLoader }) => {
   return (
     <>
-      <Col className="d-flex justify-content-center mt-5" sm={12}>
-        <div>
-          <h1>Welcome to Bill System</h1>
+      <Col className="mt-5" style={{ padding: "0px 12px" }} sm={12}>
+        <div className="center-item">
+          <h1>Welcome to Bill Generating System</h1>
+        </div>
+        <div className="center-item">
           <p>Manage your customers and bills efficiently.</p>
         </div>
       </Col>
-      <InputBoxes showAlertBox={showAlertBox} />
+      <InputBoxes showAlertBox={showAlertBox} setShowLoader={setShowLoader} />
     </>
   );
 };

@@ -7,11 +7,13 @@ import "./App.css";
 import UploadExcellData from "./components/UploadExcellData/UploadExcellData";
 import AlertBox from "./components/AlertBox/AlertBox";
 import { useEffect, useState } from "react";
+import Loader from "./components/Loader/Loader";
 
 const App = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState("");
   const [alertVariant, setAlertVariant] = useState("success");
+  const [showLoader, setShowLoader] = useState(false);
 
   function showAlertBox(message='', variantType='success') {
     setAlertVariant(variantType);
@@ -31,20 +33,36 @@ const App = () => {
   return (
     <Router>
       <NavigationBar />
-        <AlertBox show={showAlert} message={alertMsg} variant={alertVariant} />
+      <AlertBox show={showAlert} message={alertMsg} variant={alertVariant} />
+      <Loader visible={showLoader} />
       <Routes>
-        <Route path="/" element={<Home showAlertBox={showAlertBox} />} />
+        <Route
+          path="/"
+          element={<Home showAlertBox={showAlertBox} setShowLoader={setShowLoader} />}
+        />
         <Route
           path="/customer"
-          element={<Customers showAlertBox={showAlertBox} />}
+          element={
+            <Customers
+              setShowLoader={setShowLoader}
+              showAlertBox={showAlertBox}
+            />
+          }
         />
         <Route
           path="/lite-bill"
-          element={<Bill showAlertBox={showAlertBox} />}
+          element={
+            <Bill setShowLoader={setShowLoader} showAlertBox={showAlertBox} />
+          }
         />
         <Route
           path="/upload-bill-from-excel"
-          element={<UploadExcellData showAlertBox={showAlertBox} />}
+          element={
+            <UploadExcellData
+              setShowLoader={setShowLoader}
+              showAlertBox={showAlertBox}
+            />
+          }
         />
       </Routes>
     </Router>

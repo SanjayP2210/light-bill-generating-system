@@ -48,7 +48,7 @@
     /* Adjust as needed */
     left: 50%;
     transform: translateX(-50%);
-    z-index: 1050;
+    z-index: 999999 !important;
     /* Ensure it's above other content */
     max-width: 300px !important;
     width: 300px !important;
