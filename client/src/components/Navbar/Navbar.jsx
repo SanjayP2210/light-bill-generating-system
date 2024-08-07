@@ -1,35 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Navbar, Nav } from "react-bootstrap";
-import { LinkContainer } from "react-router-bootstrap";
-import { useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import Logo from "../../assets/images/logo5.png";
 
 const NavigationBar = () => {
-
+  const navigate = useNavigate();
   useEffect(() => {
-     document.querySelectorAll(".nav-link").forEach((link) => {
-       link.addEventListener("click", () => {
-         // Get the navbar element
-         const navbarButton = document.getElementsByClassName("navbar-toggler");
-         const navbar = document.getElementById("basic-navbar-nav");
-         // Collapse the navbar
-         if (navbarButton && navbarButton?.length > 0 && navbar.classList.contains("show")) {
+    document.querySelectorAll(".nav-link").forEach((link) => {
+      link.addEventListener("click", () => {
+        // Get the navbar element
+        const navbarButton = document.getElementsByClassName("navbar-toggler");
+        const navbar = document.getElementById("basic-navbar-nav");
+        // Collapse the navbar
+        if (
+          navbarButton &&
+          navbarButton?.length > 0 &&
+          navbar.classList.contains("show")
+        ) {
           //  navbar.click();
-           navbarButton?.[0]?.click();
-         }
-       });
-     });
-  }, [])
-
-   const location = useLocation();
-  const navigate= useNavigate()
-   const isActive = (path) => {
-     return location.pathname === path ? "active" : "";
-   };
-  const [activeLink, setActiveLink] = useState("/");
-
-  const handleLinkClick = (path) => {
-    setActiveLink(path);
-  };
+          navbarButton?.[0]?.click();
+        }
+      });
+    });
+  }, []);
 
   return (
     <Navbar
@@ -39,51 +32,30 @@ const NavigationBar = () => {
       style={{ padding: "10px 20px" }}
     >
       <Navbar.Brand>
-        <LinkContainer
-          to="javascipt:void(0)"
+        <img
+          src={Logo}
           onClick={(e) => {
             e.preventDefault();
             navigate("/");
           }}
-        >
-          <Nav.Link className={isActive("/")}>Bill System</Nav.Link>
-        </LinkContainer>
+          style={{ width: "50px", height: "50px", cursor: "pointer" }}
+        />
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">
-        <Nav className="me-auto">
-          <LinkContainer to="/" className={activeLink === "/" ? "active" : ""}>
-            <Nav.Link onClick={() => handleLinkClick("/")}>Home</Nav.Link>
-          </LinkContainer>
-          <LinkContainer
-            to="/customer"
-            className={activeLink === "/customer" ? "active" : ""}
-          >
-            <Nav.Link onClick={() => handleLinkClick("/customer")}>
-              Customers
-            </Nav.Link>
-          </LinkContainer>
-          <LinkContainer
-            to="/lite-bill"
-            className={activeLink === "/lite-bill" ? "active" : ""}
-          >
-            <Nav.Link
-              onClick={() => handleLinkClick("/lite-bill")}
-            >
-              Bill
-            </Nav.Link>
-          </LinkContainer>
-          <LinkContainer
-            to="/upload-bill-from-excel"
-            className={activeLink === "/upload-bill-from-excel" ? "active" : ""}
-          >
-            <Nav.Link
-              onClick={() => handleLinkClick("/about")}
-              className={isActive("/upload-bill-from-excel")}
-            >
-              Upload Data From Excel
-            </Nav.Link>
-          </LinkContainer>
+        <Nav className="justify-content-end flex-grow-1 pe-3 me-auto">
+            <NavLink to="/"  className="nav-link">
+              Home
+            </NavLink>
+            <NavLink to="/customer" className="nav-link">
+              {" "}
+              Customers{" "}
+            </NavLink>
+            <NavLink to="/lite-bill" className="nav-link">Bill</NavLink>
+            <NavLink to="/upload-bill-from-excel" className="nav-link">
+              Upload Data
+            </NavLink>
+          
         </Nav>
       </Navbar.Collapse>
     </Navbar>

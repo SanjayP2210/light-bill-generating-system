@@ -12,10 +12,10 @@ import Loader from "./components/Loader/Loader";
 const App = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState("");
-  const [alertVariant, setAlertVariant] = useState("success");
+  const [alertVariant, setAlertVariant] = useState("danger");
   const [showLoader, setShowLoader] = useState(false);
 
-  function showAlertBox(message='', variantType='success') {
+  function showAlertBox(message='', variantType='danger') {
     setAlertVariant(variantType);
     setShowAlert(true);
     setAlertMsg(message);

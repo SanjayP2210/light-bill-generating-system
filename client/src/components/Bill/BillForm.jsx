@@ -5,14 +5,13 @@ import axios from "axios";
 import { getMaxDate, formatDateForInput } from '../../Utilities/Utils.js';
 
 const BillForm = ({
-  prev_unit,
-  setPrev_unit,
   fetchBillByCustomerId,
   customer_id,
   handleCloseModal,
   showAlertBox,
   billData,
 }) => {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const defaultFormValue = {
     customer_id: "",
     current_unit: 0,
@@ -27,8 +26,8 @@ const BillForm = ({
   const [form, setForm] = useState(billData || defaultFormValue);
   const maxDate = getMaxDate();
   const [billDate, setBillDate] = useState(""); // Holds the currently selected date
-  const apiUrl = import.meta.env.VITE_API_URL;
-
+  const [currentUnitDisabled, setCurrentUnitDisabled] = useState(false);
+  const [prevUnitDisabled, setPrevUnitDisabled] = useState(false);
   const calculateBil = (formValue, name, value) => {
     const { current_unit, unit_per_rate, prev_unit } = formValue;
     let price = 0;
@@ -64,7 +63,6 @@ const BillForm = ({
         showAlertBox(response?.data?.message);
       } else {
         showAlertBox("Bill Updated Succesfully", "success");
-        setPrev_unit(0);
         setForm(defaultFormValue);
         handleCloseModal();
         fetchBillByCustomerId();
@@ -118,24 +116,25 @@ const BillForm = ({
               e.target.value = e.target.value.replace(/[^0-9.]/g, "");
               handleInputChange(e);
             }}
-            // onBlur={(e) => {
-            //   e.target.value = e.target.value.replace(/[^0-9.]/g, "");
-            //   if (
-            //     e.target.value &&
-            //     parseFloat(e.target.value) <= parseFloat(prev_unit)
-            //   ) {
-            //     setForm({ ...form, current_unit: e.target.value });
-            //     showAlertBox(
-            //       "Current Unit Not Less Then or Equal to Previouse Unit",
-            //       "danger"
-            //     );
-            //     return;
-            //   } else {
-            //     handleInputChange(e);
-            //   }
-            // }}
+            onBlur={(e) => {
+              e.target.value = e.target.value.replace(/[^0-9.]/g, "");
+              handleInputChange(e);
+              if (form.total_price <= 0) {
+                showAlertBox(
+                  "Current Unit Not Less Then or Equal to Previouse Unit",
+                  "danger"
+                );
+                setPrevUnitDisabled(true);
+                return;
+              } else {
+                setPrevUnitDisabled(false);
+              }
+            }}
             min={0}
-            max={prev_unit}
+            max={form?.prev_unit}
+            disabled={
+              currentUnitDisabled
+            }
           />
         </Col>
       </Form.Group>
@@ -153,86 +152,90 @@ const BillForm = ({
               e.target.value = e.target.value.replace(/[^0-9.]/g, "");
               handleInputChange(e);
             }}
-            // onBlur={(e) => {
-            //   if (
-            //     e.target.value &&
-            //     parseFloat(e.target.value) >= parseFloat(form.current_unit)
-            //   ) {
-            //     showAlertBox(
-            //       "Previouse Unit Not Greater Then  or Equal to Current Unit"
-            //     );
-            //      setForm({ ...form, prev_unit: 0 });
-            //     return;
-            //   } else {
-            //     handleInputChange(e);
-            //   }
-            // }}
+            onBlur={(e) => {
+              e.target.value = e.target.value.replace(/[^0-9.]/g, "");
+              handleInputChange(e);
+              if (
+                form.total_price <= 0
+                // e.target.value &&
+                // parseFloat(e.target.value) >= parseFloat(form.current_unit)
+              ) {
+                showAlertBox(
+                  "Previouse Unit Not Greater Then  or Equal to Current Unit"
+                );
+                setCurrentUnitDisabled(true);
+                return;
+              }else{
+                setCurrentUnitDisabled(false);
+              }
+            }}
             min={form.current_unit}
+            disabled={prevUnitDisabled}
           />
         </Col>
-        </Form.Group>
-      
-        <Form.Group as={Row} className="mb-3" controlId="unit_per_rate">
-          <Form.Label column sm="4">
-            Unit Per Rate
-          </Form.Label>
-          <Col sm="8">
-            <Form.Control value={form.unit_per_rate} readOnly={true} />
-          </Col>
-        </Form.Group>
+      </Form.Group>
 
-        <Form.Group as={Row} className="mb-3" controlId="billDate">
-          <Form.Label column sm="4">
-            Date
-          </Form.Label>
-          <Col sm="8">
-            <Form.Control
-              type="date"
-              value={billDate}
-              name="billDate"
-              placeholder="Enter Date"
-              max={maxDate}
-              onChange={(event) => {
-                const dateValue = event.target.value;
-                setBillDate(dateValue);
-              }}
-              onBlur={handleDateChange}
-              onPaste={(event) => {
-                const paste = (
-                  event.clipboardData || window.clipboardData
-                ).getData("text");
-                let value;
-                const datePattern = /^\d{2}\/\d{2}\/\d{4}$/;
-                if (datePattern.test(paste)) {
-                  const [day, month, year] = paste.split("/");
-                  const formattedDate = `${year}-${month.padStart(
-                    2,
-                    "0"
-                  )}-${day.padStart(2, "0")}`;
-                  value = formattedDate;
-                } else {
-                  // If the format is already YYYY-MM-DD or invalid, paste it as it is
-                  value = paste;
-                }
-                setBillDate(value);
-              }}
-            />
-          </Col>
-        </Form.Group>
-        <Form.Group as={Row} className="mb-3" controlId="comments">
-          <Form.Label column sm="4">
-            Comment
-          </Form.Label>
-          <Col sm="8">
-            <Form.Control
-              value={form?.comments}
-              as="textarea"
-              rows={3}
-              name="comments"
-              onChange={handleInputChange}
-            />
-          </Col>
-        </Form.Group>
+      <Form.Group as={Row} className="mb-3" controlId="unit_per_rate">
+        <Form.Label column sm="4">
+          Unit Per Rate
+        </Form.Label>
+        <Col sm="8">
+          <Form.Control value={form.unit_per_rate} readOnly={true} />
+        </Col>
+      </Form.Group>
+
+      <Form.Group as={Row} className="mb-3" controlId="billDate">
+        <Form.Label column sm="4">
+          Date
+        </Form.Label>
+        <Col sm="8">
+          <Form.Control
+            type="date"
+            value={billDate}
+            name="billDate"
+            placeholder="Enter Date"
+            max={maxDate}
+            onChange={(event) => {
+              const dateValue = event.target.value;
+              setBillDate(dateValue);
+            }}
+            onBlur={handleDateChange}
+            onPaste={(event) => {
+              const paste = (
+                event.clipboardData || window.clipboardData
+              ).getData("text");
+              let value;
+              const datePattern = /^\d{2}\/\d{2}\/\d{4}$/;
+              if (datePattern.test(paste)) {
+                const [day, month, year] = paste.split("/");
+                const formattedDate = `${year}-${month.padStart(
+                  2,
+                  "0"
+                )}-${day.padStart(2, "0")}`;
+                value = formattedDate;
+              } else {
+                // If the format is already YYYY-MM-DD or invalid, paste it as it is
+                value = paste;
+              }
+              setBillDate(value);
+            }}
+          />
+        </Col>
+      </Form.Group>
+      <Form.Group as={Row} className="mb-3" controlId="comments">
+        <Form.Label column sm="4">
+          Comment
+        </Form.Label>
+        <Col sm="8">
+          <Form.Control
+            value={form?.comments}
+            as="textarea"
+            rows={3}
+            name="comments"
+            onChange={handleInputChange}
+          />
+        </Col>
+      </Form.Group>
       <div className="m-2 center-item">
         <Button variant="dark" style={{ marginRight: "10px" }}>
           Total Price <Badge bg="secondary">{form.total_price}</Badge>

@@ -99,3 +99,29 @@ input[type="number"] {
   min-width: 150px;
   margin: 10px
 }
+
+.action-buttons {
+  flex-wrap: wrap;
+}
+
+.action-buttons button {
+  min-width: 20px;
+  margin: 5px
+}
+
+
+.navbar-nav .active{
+  color:red
+}
+
+.nav-link {
+  background: 0 0;
+  border: 0;
+  color: var(--bs-nav-link-color);
+  display: block;
+  font-size: var(--bs-nav-link-font-size);
+  font-weight: var(--bs-nav-link-font-weight);
+  padding: var(--bs-nav-link-padding-y) var(--bs-nav-link-padding-x);
+  text-decoration: none;
+  transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out
+}

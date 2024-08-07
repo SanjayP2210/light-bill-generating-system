@@ -77,39 +77,39 @@ const BillTable = ({
               <td>{total_price}</td>
               <th>{comments}</th>
               {customer_id?.name && (
-                <td>
-                  <ButtonGroup size="sm">
-                    <Button
-                      variant="outline-primary"
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setBillData(bill);
-                      }}
-                    >
-                      <IconEdit />
-                    </Button>
-                    <Button
-                      variant="outline-success"
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        generatePDFById(bill?._id);
-                      }}
-                    >
-                      <IconDownload />
-                    </Button>
-                    <Button
-                      variant="outline-danger"
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        deleteBill(bill?._id);
-                      }}
-                    >
-                      <IconTrash />
-                    </Button>
-                  </ButtonGroup>
+                <td className="action-buttons">
+                  <Button
+                    variant="outline-primary"
+                    className="btn"
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setBillData(bill);
+                    }}
+                  >
+                    <IconEdit />
+                  </Button>
+                  <Button
+                    variant="outline-success"
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setBillData(bill);
+                      generatePDFById(bill?._id);
+                    }}
+                  >
+                    <IconDownload />
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      deleteBill(bill?._id);
+                    }}
+                  >
+                    <IconTrash />
+                  </Button>
                 </td>
               )}
             </tr>

@@ -1,14 +1,13 @@
 /* eslint-disable react/prop-types */
 // InputBoxes.js
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./InputBoxes.css"; // Ensure you create this CSS file for styling
-import { Button, Card, Col, Modal } from "react-bootstrap";
+import { Button, Col } from "react-bootstrap";
 import CustomerSelector from "../../CustomerSelector";
 import axios from "axios";
+import TableModal from "../../TableModal/TableModal";
 import NewBillTableView from "../../Bill/NewBillTableView";
-import { IconDownload, IconPlus, IconX } from "@tabler/icons-react";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import { IconPlus } from "@tabler/icons-react";
 
 const InputBoxes = ({ showAlertBox, setShowLoader }) => {
   const defaultFormValue = {
@@ -32,7 +31,7 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
   const [comments, setComments] = useState("");
   const [isNewBillGenerated, setIsNewBillGenerated] = useState(false);
   const apiUrl = import.meta.env.VITE_API_URL;
-  const tableRef = useRef(null);
+  const [isClickOnPdfBtn, setIsClickOnPdfBtn] = useState(false);
   const handleCloseModal = () => {
     setShowModal(false);
     if (isNewBillGenerated && lastBillData) {
@@ -206,40 +205,6 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
   //   }
   // };
 
-  const handleDownloadPDF = () => {
-    var today = new Date();
-    setShowLoader(true);
-    if (tableRef.current) {
-      html2canvas(tableRef.current, { scale: 1.5 }).then((canvas) => {
-        // Increased scale for better quality
-        // Create a new jsPDF instance
-        const pdf = new jsPDF({
-          orientation: "p", // Portrait orientation
-          unit: "mm", // Unit of measurement
-          format: "a4", // A4 paper size
-        });
-
-        // Convert the canvas to an image
-        const imgData = canvas.toDataURL("image/png");
-
-        // Calculate the PDF dimensions based on A4 size
-        const imgWidth = 130; // Image width in mm
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-        // Adjust the height to make the table appear smaller
-        const scaleFactor = 1; // Adjust this factor to scale the image
-        const scaledImgHeight = imgHeight * scaleFactor;
-
-        // Add the image to the PDF with scaled height
-        pdf.addImage(imgData, "PNG", 40, 10, imgWidth, scaledImgHeight);
-
-        // Save the PDF
-        pdf.save(`bill_${customer_id?.name}_${today.getTime()}.pdf`);
-        setShowLoader(false);
-      });
-    }
-  };
-
   const addBill = async () => {
     try {
       const formData = {
@@ -273,6 +238,36 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
   useEffect(() => {
     fetchCustomers();
   }, []);
+
+  const bodyContainer = useMemo(() => {
+    return (
+      <>
+        <NewBillTableView
+          handleCloseModal={handleCloseModal}
+          tableValue={form}
+          comments={comments}
+          customerName={customerName}
+          setComments={setComments}
+          isNewBillGenerated={isNewBillGenerated}
+        />
+      </>
+    );
+  }, [comments, form, customerName, isNewBillGenerated, handleCloseModal]);
+
+  const newBillButton = (
+    <>
+      <Button
+        variant="outline-dark"
+        style={{ marginRight: "10px" }}
+        disabled={isNewBillGenerated}
+        type="submit"
+        onClick={addBill}
+      >
+        <IconPlus /> Add Bil
+      </Button>
+      ;
+    </>
+  );
 
   return (
     <>
@@ -368,56 +363,18 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
           )}
         </div>
       </Col>
-      <Modal
-        className="bill-modal-body"
-        show={showModal}
-        onHide={handleCloseModal}
-        centered
-      >
-        <Modal.Body>
-          <Card>
-            <Card.Body ref={tableRef} style={{ margin: "20px" }}>
-              <NewBillTableView
-                handleCloseModal={handleCloseModal}
-                tableValue={form}
-                comments={comments}
-                customerName={customerName}
-                setComments={setComments}
-                isNewBillGenerated={isNewBillGenerated}
-              />
-            </Card.Body>
-          </Card>
-        </Modal.Body>
-        <Modal.Footer className="m-2 center-item align-items-center">
-          <div>
-            <Button
-              variant="outline-dark"
-              style={{ marginRight: "10px" }}
-              disabled={isNewBillGenerated}
-              type="submit"
-              onClick={addBill}
-            >
-              <IconPlus /> Add Bil
-            </Button>
-            <Button
-              variant="outline-primary"
-              type="button"
-              disabled={!isNewBillGenerated}
-              style={{ marginRight: "10px" }}
-              onClick={handleDownloadPDF}
-            >
-              <IconDownload /> PDF
-            </Button>
-            <Button
-              variant="outline-danger"
-              type="button"
-              onClick={handleCloseModal}
-            >
-              <IconX /> Close
-            </Button>
-          </div>
-        </Modal.Footer>
-      </Modal>
+      <TableModal
+        isClickOnPdfBtn={isClickOnPdfBtn}
+        setIsClickOnPdfBtn={setIsClickOnPdfBtn}
+        bodyContainer={bodyContainer}
+        newBillButton={newBillButton}
+        disablePdfButton={!isNewBillGenerated}
+        showModal={showModal}
+        handleCloseModal={handleCloseModal}
+        setShowLoader={setShowLoader}
+        customer_id={customer_id}
+        style={{ margin: "20px" }}
+      />
     </>
   );
 };

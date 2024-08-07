@@ -15,8 +15,16 @@ const __dirname = dirname(__filename);
 const router = express.Router();
 
 function convertToDate(dateStr) {
-    const [day, month, year] = dateStr.split('/').map(Number);
-    return new Date(year, month - 1, day);
+    if (typeof dateStr === 'string') {
+        if (dateStr.includes('T')) {
+            return new Date(dateStr);
+        } else {
+            const [day, month, year] = dateStr.split('/').map(Number);
+            return new Date(year, month - 1, day);
+        }
+    }else{
+        return dateStr;
+    }
 }
 
 const updateLastBillOfCustomer = async (customer_id) => {

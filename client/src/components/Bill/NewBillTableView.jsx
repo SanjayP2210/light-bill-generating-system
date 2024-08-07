@@ -13,6 +13,7 @@ const NewBillTableView = ({
   setComments,
   customerName,
   isNewBillGenerated,
+  titleDate,
 }) => {
   const generateTableRows = () => {
     const tableData = Object.keys(tableValue);
@@ -95,7 +96,7 @@ const NewBillTableView = ({
           <thead className="thead-dark">
             <tr>
               <th className="table-dark text-center">Date</th>
-              <th className="table-dark text-center">{todayDate}</th>
+              <th className="table-dark text-center">{titleDate ||  todayDate}</th>
             </tr>
           </thead>
           <tbody>{generateTableRows(tableValue)}</tbody>
