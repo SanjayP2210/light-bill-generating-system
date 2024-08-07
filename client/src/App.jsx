@@ -38,7 +38,8 @@ const App = () => {
       <Routes>
         <Route
           path="/"
-          element={<Home showAlertBox={showAlertBox} setShowLoader={setShowLoader} />}
+          element={<Home showAlertBox={showAlertBox} setShowLoader={setShowLoader}
+          />}
         />
         <Route
           path="/customer"
