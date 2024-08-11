@@ -6,8 +6,9 @@ import UploadExcel from "../UploadExcel/UploadExcel";
 import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
 import Select from "../Common/Select/Select";
 import { getSelectedFileData, loadData } from "../../Utilities/Utils";
+import { toast } from "react-toastify";
 
-const UploadExcellData = ({ showAlertBox }) => {
+const UploadExcellData = () => {
   const [customers, setCustomers] = useState([]);
   const [bills, setBills] = useState([]);
   const [customer_id, setCustomerId] = useState("");
@@ -24,6 +25,17 @@ const UploadExcellData = ({ showAlertBox }) => {
   const [sheetOptions, setSheetOptions] = useState([]);
 
   const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const allowedExtensions = ["xlsx", "xls"];
+      const fileExtension = file.name.split(".").pop().toLowerCase();
+
+      if (!allowedExtensions.includes(fileExtension)) {
+        toast.warn("Please upload a valid Excel file.");
+        e.target.value = ""; // Clear the input
+        return;
+      }
+    }
     setSelectedFile(e.target.files[0]);
     getSelectedFileData(e).then((res) => {
       if (JSON.stringify(res) != "{}") {
@@ -54,7 +66,7 @@ const UploadExcellData = ({ showAlertBox }) => {
     });
   };
 
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const apiUrl = import.meta.env.VITE_APP_API_URL;
 
   useEffect(() => {
     fetchCustomers();
@@ -66,7 +78,7 @@ const UploadExcellData = ({ showAlertBox }) => {
       setBills(res.data);
     } catch (error) {
       console.error("Error fetching bills:", error);
-      showAlertBox("Error fetching bills");
+      toast.error("Error fetching bills");
     }
   };
 
@@ -76,34 +88,34 @@ const UploadExcellData = ({ showAlertBox }) => {
       setCustomers(res.data);
     } catch (error) {
       console.error("Error fetching customers:", error);
-      showAlertBox("Error fetching customers");
+      toast.error("Error fetching customers");
     }
   };
 
-  const clearFile=()=>{
+  const clearFile = () => {
     selectedFileRef.current.value = null;
     setSelectedFile(null);
-  }
+  };
 
   const uploadExcel = async () => {
     if (customer_id) {
       try {
-      const response =   await axios.post(
+        const response = await axios.post(
           `${apiUrl}/bills/upload-data-from-table/${customer_id?.value}`,
           bills
-      );
+        );
         if (!response?.data?.isError) {
-          showAlertBox("File uploaded successfully","success");
+          toast.warn("File uploaded successfully");
           fetchBills();
-        }else{
-           showAlertBox("Error uploading Excel file", response?.data?.messgae);
+        } else {
+          toast.error("Error uploading Excel file", response?.data?.messgae);
         }
       } catch (error) {
         console.error("Error uploading Excel file:", error);
-        showAlertBox("Error uploading Excel file");
+        toast.error("Error uploading Excel file");
       }
     } else {
-      showAlertBox("Please Select Customer First");
+      toast("Please Select Customer First");
     }
   };
 
@@ -114,11 +126,11 @@ const UploadExcellData = ({ showAlertBox }) => {
         (c) => c?.name?.toLowerCase() === sheetName?.toLowerCase()
       );
       if (!isCustomerFound) {
-        showAlertBox(
+        toast.error(
           "Customer not found. Please add a new customer with this name."
         );
         setSelectedSheet(null);
-        setBills([])
+        setBills([]);
         return;
       } else {
         setSelectedSheet(e);
@@ -131,9 +143,13 @@ const UploadExcellData = ({ showAlertBox }) => {
             let { convertedData } = data;
             setBills(convertedData);
           })
-          .catch((err) => {});
+          .catch((err) => {
+            toast.error(err);
+          });
       }
-    } catch (error) {}
+    } catch (error) {
+       toast.error(error);
+    }
   };
   return (
     <>
@@ -151,14 +167,6 @@ const UploadExcellData = ({ showAlertBox }) => {
               clearFile={clearFile}
             />
           </Col>
-          {/* <Col md={3}>
-            <CustomerSelector
-              isDisabled={!selectedFile}
-              customers={customers}
-              setCustomerId={setCustomerId}
-              customer_id={customer_id}
-            />
-          </Col> */}
           <Col md={{ span: 4 }}>
             <Form.Label>Select Sheet</Form.Label>
             <Select
@@ -192,8 +200,6 @@ const UploadExcellData = ({ showAlertBox }) => {
               <Card.Body>
                 <BillTable
                   bills={bills}
-                  //   generatePDFById={}
-                  showAlertBox={showAlertBox}
                   fetchBills={() => {}}
                 />
               </Card.Body>

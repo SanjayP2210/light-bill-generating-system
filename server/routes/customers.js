@@ -8,7 +8,11 @@ const router = express.Router();
 router.get('/', async (req, res) => {
     try {
         const customers = await Customer.find({ isActive: true });
-        res.json(customers);
+        res.json({
+            data: customers,
+            isError: false,
+            message : 'customer get successfully'
+        });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -19,7 +23,11 @@ router.get('/', async (req, res) => {
 router.get('/master-list', async (req, res) => {
     try {
         const customers = await Customer.find();
-        res.json(customers);
+        res.json({
+            data: customers,
+            isError: false,
+            message: 'customer get successfully'
+        });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

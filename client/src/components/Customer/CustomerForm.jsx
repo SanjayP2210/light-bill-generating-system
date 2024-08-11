@@ -5,7 +5,8 @@ import axios from "axios";
 import Select from "../Common/Select/Select";
 import { formatDateForInput, getMaxDate } from "../../Utilities/Utils";
 import { IconPlus, IconX } from "@tabler/icons-react";
-const apiUrl = import.meta.env.VITE_API_URL;
+import { toast } from "react-toastify";
+const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 const billNumberOptions = [
   { label: "1", value: "1" },
@@ -16,7 +17,6 @@ const CustomerForm = ({
   selectedCustomer,
   fetchCustomers,
   setSelectedCustomer,
-  showAlertBox,
   resetForm,
   setForm,
   form,
@@ -33,7 +33,7 @@ const CustomerForm = ({
 
     // Validate selected date against maxDate
     if (dateValue > maxDate) {
-      showAlertBox("Selected date cannot be in the future."); // Set error if the date is invalid
+      toast.warn("Selected date cannot be in the future."); // Set error if the date is invalid
       setRentDate(""); // Clear the selected date
     } else {
       setRentDate(dateValue); // Update selected date
@@ -72,7 +72,7 @@ const CustomerForm = ({
       e.preventDefault(); // Prevent default form submission
       const { name, mobile_number, default_unit_per_rate } = form;
       if (mobile_number && mobile_number?.length < 10) {
-        showAlertBox("Mobile Number must be 10 digits", "danger");
+        toast.warn("Mobile Number must be 10 digits", "danger");
         return;
       }
       const formData = {
@@ -91,18 +91,18 @@ const CustomerForm = ({
         : await axios.post(`${apiUrl}/customers`, formData);
 
       if (response?.data?.isError) {
-        showAlertBox(response?.data?.message, "danger");
+        toast.error(response?.data?.message);
         setShowLoader(false);
       } else {
         fetchCustomers();
         resetForm();
         setRentDate(maxDate);
         setSelectedCustomer(null);
-        showAlertBox("Customer Save Successfully", "Success");
+        toast.success("Customer Save Successfully");
         setShowLoader(false);
       }
     } catch (error) {
-      showAlertBox(error, "danger");
+      toast.error(error, "danger");
       setShowLoader(false);
     }
   };

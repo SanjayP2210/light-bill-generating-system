@@ -9,25 +9,24 @@ const CustomerList = ({
   customers,
   fetchCustomers,
   setSelectedCustomer,
-  showAlertBox,
   resetForm,
   setShowLoader,
 }) => {
   const [currentTab, setCurrentTab] = useState("all");
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const deleteCustomer = async (id) => {
-    try {
-      const response = await axios.delete(`${apiUrl}/customers/${id}`);
-      if (response?.data?.isError) {
-        showAlertBox(response?.data?.message);
-      } else {
-        fetchCustomers();
-      }
-    } catch (error) {
-      console.error("Error fetching customers:", error?.data?.message);
-      showAlertBox("Error deleting customers");
-    }
-  };
+  const apiUrl = import.meta.env.VITE_APP_API_URL;
+  // const deleteCustomer = async (id) => {
+  //   try {
+  //     const response = await axios.delete(`${apiUrl}/customers/${id}`);
+  //     if (response?.data?.isError) {
+  //       toast.error(response?.data?.message);
+  //     } else {
+  //       fetchCustomers();
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching customers:", error?.data?.message);
+  //     toast.error("Error deleting customers");
+  //   }
+  // };
 
   const handleActiveDeactive = async (id, item) => {
     try {
@@ -166,7 +165,7 @@ const CustomerList = ({
     } else {
       return (
         <tr>
-          <td colSpan="2" style={{ textAlign: "center", color: "black" }}>
+          <td colSpan="7" style={{ textAlign: "center", color: "black" }}>
             <p>
               <b>No Data Found</b>
             </p>

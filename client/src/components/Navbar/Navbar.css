@@ -1,0 +1,173 @@
+.navbar {
+    background-color: black;
+    padding: 0 !important;
+    box-shadow: 0 1em 1em rgba(0, 0, 0, .2);
+}
+
+.nav-logo {
+    width: 100px;
+    display: flex;
+    justify-content: center;
+}
+
+.navbar-container {
+    display: flex;
+    justify-content: flex-end;
+    /* COLORS */
+    --tab-color: #191919;
+    --white-color: #fff;
+    --home-icon-color: #00f7ff;
+    --file-icon-color: #ff0000;
+    --download-icon-color: #adff2f;
+    --user-icon-color: #ee82ee;
+    --bell-icon-color: #ffff00;
+
+    /* ------------ BASE ------------ */
+
+    li {
+        display: inline-block;
+        width: 100px;
+    }
+
+    /* ------------ MENU ------------ */
+    .nav {
+        width: 400px;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .nav__links {
+        width: 200px;
+        display: flex;
+        justify-content: space-between;
+        padding-left: 1.3em !important;
+    }
+
+    .nav__link a {
+        color: var(--white-color);
+        font-size: 2rem;
+        opacity: 0.5;
+        width: 100px;
+    }
+
+    .nav__light {
+        position: absolute;
+        top: 0;
+        left: 1.3em;
+        background-color: var(--white-color);
+        width: 50px;
+        height: .4em;
+        border-radius: 2px;
+
+        display: flex;
+        justify-content: center;
+
+        transition: .3s ease;
+    }
+
+    .nav__light::before {
+        content: '';
+        width: 5em;
+        height: 7em;
+        position: absolute;
+        top: .4em;
+        background: linear-gradient(to bottom, rgba(255, 255, 255, .3) -50%, rgba(255, 255, 255, 0) 90%);
+        clip-path: polygon(30% 0, 70% 0, 100% 100%, 0% 100%);
+    }
+
+
+    .nav__link.active a {
+        opacity: 1;
+    }
+
+    .nav__link.active a .tabler-icon-home {
+        color: var(--home-icon-color);
+        text-shadow: 0 0 15px var(--home-icon-color),
+            0 0 30px var(--home-icon-color),
+            0 0 45px var(--home-icon-color),
+            0 0 60px var(--home-icon-color);
+    }
+
+    .nav__link:nth-child(1).active~.nav__light {
+        background-color: var(--home-icon-color);
+    }
+
+    .nav__link.active a .tabler-icon-user {
+        color: var(--user-icon-color);
+        text-shadow: 0 0 15px var(--user-icon-color),
+            0 0 30px var(--user-icon-color),
+            0 0 45px var(--user-icon-color),
+            0 0 60px var(--user-icon-color);
+    }
+
+    .nav__link:nth-child(2).active~.nav__light {
+        background-color: var(--user-icon-color);
+    }
+/* 
+    .nav__link.active a .tabler-icon-file {
+        color: var(--file-icon-color);
+        text-shadow: 0 0 15px var(--file-icon-color),
+            0 0 30px var(--file-icon-color),
+            0 0 45px var(--file-icon-color),
+            0 0 60px var(--file-icon-color);
+    }
+
+    .nav__link:nth-child(3).active~.nav__light {
+        background-color: var(--file-icon-color);
+    } */
+
+
+    .nav__link.active a .tabler-icon-download {
+        color: var(--download-icon-color);
+        text-shadow: 0 0 15px var(--download-icon-color),
+            0 0 30px var(--download-icon-color),
+            0 0 45px var(--download-icon-color),
+            0 0 60px var(--download-icon-color);
+    }
+
+    .nav__link:nth-child(4).active~.nav__light {
+        background-color: var(--download-icon-color);
+    }
+
+
+
+    .nav__link.active a .tabler-icon-file {
+        color: var(--bell-icon-color);
+        text-shadow: 0 0 15px var(--bell-icon-color),
+            0 0 30px var(--bell-icon-color),
+            0 0 45px var(--bell-icon-color),
+            0 0 60px var(--bell-icon-color);
+    }
+
+    .nav__link:nth-child(3).active~.nav__light {
+        background-color: var(--bell-icon-color);
+    }
+}
+
+@media (max-width: 500px) {
+    .nav-logo {
+        display: none !important;
+    }
+}
+
+
+@media (max-width:400px) {
+    .nav {
+        width: 300px !important;
+    }
+
+    .nav__link {
+        width: 75px !important;
+    }
+
+    .nav__links {
+        width: 300px !important;
+    }
+
+    .nav__link a{
+        width: 75px !important;
+    }
+
+}

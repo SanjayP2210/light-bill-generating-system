@@ -8,8 +8,10 @@ import axios from "axios";
 import TableModal from "../../TableModal/TableModal";
 import NewBillTableView from "../../Bill/NewBillTableView";
 import { IconPlus } from "@tabler/icons-react";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
-const InputBoxes = ({ showAlertBox, setShowLoader }) => {
+const InputBoxes = ({ setShowLoader }) => {
   const defaultFormValue = {
     current_unit: 0,
     prev_unit: 0,
@@ -18,6 +20,7 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
     total_price: 0,
     comments: "",
   };
+  const navigate = useNavigate();
   const textboxesRef = useRef([]);
   const [values, setValues] = useState(Array(6).fill(""));
   const [customers, setCustomers] = useState([]);
@@ -30,8 +33,9 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
   const [showModal, setShowModal] = useState(false);
   const [comments, setComments] = useState("");
   const [isNewBillGenerated, setIsNewBillGenerated] = useState(false);
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const apiUrl = import.meta.env.VITE_APP_API_URL;
   const [isClickOnPdfBtn, setIsClickOnPdfBtn] = useState(false);
+
   const handleCloseModal = () => {
     setShowModal(false);
     if (isNewBillGenerated && lastBillData) {
@@ -104,7 +108,7 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
               unit_per_rate,
             });
             if (prev_unit > numberWithDecimal) {
-              showAlertBox("New unit is not greater than previous unit");
+              toast.warn("New unit is not greater than previous unit");
               price = 0;
               e.target.value = null;
               e.target.focus();
@@ -171,12 +175,40 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
     try {
       setShowLoader(true);
       const res = await axios.get(`${apiUrl}/customers`);
-      setCustomers(res.data);
+      if (res?.data?.isError) {
+        toast.error("Error fetching customers");
+        // navigate("/customer");
+      } else {
+        const data = res?.data?.data;
+        setCustomers(data);
+        if (data?.length == 0) {
+          //  toast(
+          //    <div className="text-center">
+          //      <p>No customer found. Please add customer</p>
+          //      <div className="center-item">
+          //        <Button onClick={() => navigate("/customer")}>ok</Button>
+          //      </div>
+          //    </div>,
+          //    {
+          //      position: "top-center",
+          //      autoClose: 5000, // Auto close after 5 seconds
+          //      hideProgressBar: false,
+          //      closeOnClick: true,
+          //      pauseOnHover: true,
+          //      closeButton: false,
+          //      draggable: true,
+          //      progress: undefined,
+          //    }
+          //  );
+          navigate("/customer");
+        }
+      }
       setShowLoader(false);
     } catch (error) {
       setShowLoader(false);
+      setCustomers([]);
       console.error("Error fetching customers:", error);
-      showAlertBox("Error fetching customers");
+      toast.error("Error fetching customers");
     }
   };
 
@@ -187,7 +219,7 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
   //     );
   //     if (res?.data?.isError) {
   //       setLastBillData(null);
-  //       showAlertBox(res?.data?.message);
+  //       toast(res?.data?.message);
   //     } else {
   //       setLastBillData(res.data?.data);
   //       const lastBill = res?.data?.data;
@@ -201,7 +233,7 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
   //     }
   //   } catch (error) {
   //     console.error("Error fetching customers:", error);
-  //     showAlertBox("Error fetching customers",);
+  //     toast("Error fetching customers",);
   //   }
   // };
 
@@ -217,7 +249,7 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
       if (res?.data?.isError) {
         setLastBillData(null);
         setIsNewBillGenerated(false);
-        showAlertBox(res?.data?.message);
+        toast.error(res?.data?.message);
       } else {
         setForm({
           ...form,
@@ -225,13 +257,13 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
         });
         setIsNewBillGenerated(true);
         setLastBillData(res.data?.data);
-        showAlertBox("New Bill Added Successfully", "success");
+        toast.sucess("New Bill Added Successfully");
         setShowLoader(false);
       }
     } catch (error) {
       setShowLoader(false);
       console.error("Error adding bill:", error);
-      showAlertBox("Error adding bill");
+      toast.error("Error adding bill");
     }
   };
 
@@ -252,7 +284,7 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
         />
       </>
     );
-  }, [comments, form, customerName, isNewBillGenerated, handleCloseModal]);
+  }, [comments, form, customerName, isNewBillGenerated]);
 
   const newBillButton = (
     <>
@@ -282,7 +314,7 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
             sm={{ span: 8, offset: 2 }}
           >
             <CustomerSelector
-              customers={customers}
+              customers={customers || []}
               setCustomerId={setCustomerId}
               customer_id={customer_id}
             />

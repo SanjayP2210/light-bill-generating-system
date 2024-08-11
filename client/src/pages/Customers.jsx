@@ -4,11 +4,12 @@ import { Container, Row, Col, Card } from "react-bootstrap";
 import axios from "axios";
 import CustomerForm from "../components/Customer/CustomerForm";
 import CustomerList from "../components/Customer/CustomerList";
+import { toast } from "react-toastify";
 
-const Customers = ({ showAlertBox, setShowLoader}) => {
+const Customers = ({ setShowLoader}) => {
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const apiUrl = import.meta.env.VITE_APP_API_URL;
   const defaultFormValue = {
     name: "",
     mobile_number: "",
@@ -23,19 +24,26 @@ const Customers = ({ showAlertBox, setShowLoader}) => {
   };
 
   useEffect(() => {
-     setShowLoader(true);
+    setShowLoader(true);
     fetchCustomers();
   }, []);
 
   const fetchCustomers = async () => {
     try {
-      const res = await axios.get(`${apiUrl}/customers/master-list`);
-      setCustomers(res.data);
+      setShowLoader(true);
+       const res = await axios.get(`${apiUrl}/customers/master-list`);
+      if (res?.data?.isError) {
+        toast.error("Error fetching customers");
+      } else {
+        const data = res?.data?.data;
+        setCustomers(data);
+      }
       setShowLoader(false);
     } catch (error) {
       setShowLoader(false);
+      setCustomers([]);
       console.error("Error fetching customers:", error);
-      showAlertBox("Error fetching customers");
+      toast.error("Error fetching customers");
     }
   };
 
@@ -55,7 +63,6 @@ const Customers = ({ showAlertBox, setShowLoader}) => {
                 selectedCustomer={selectedCustomer}
                 fetchCustomers={fetchCustomers}
                 setSelectedCustomer={setSelectedCustomer}
-                showAlertBox={showAlertBox}
                 resetForm={resetForm}
                 form={form}
                 setForm={setForm}
@@ -76,7 +83,6 @@ const Customers = ({ showAlertBox, setShowLoader}) => {
                 customers={customers}
                 fetchCustomers={fetchCustomers}
                 setSelectedCustomer={setSelectedCustomer}
-                showAlertBox={showAlertBox}
                 resetForm={resetForm}
                 setShowLoader={setShowLoader}
               />

@@ -3,15 +3,15 @@ import { useEffect, useState } from "react";
 import { Form, Button, Badge, Col, Row } from "react-bootstrap";
 import axios from "axios";
 import { getMaxDate, formatDateForInput } from '../../Utilities/Utils.js';
+import { toast } from "react-toastify";
 
 const BillForm = ({
   fetchBillByCustomerId,
   customer_id,
   handleCloseModal,
-  showAlertBox,
   billData,
 }) => {
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const apiUrl = import.meta.env.VITE_APP_API_URL;
   const defaultFormValue = {
     customer_id: "",
     current_unit: 0,
@@ -60,15 +60,15 @@ const BillForm = ({
         : await axios.post(`${apiUrl}/bills`, formData);
 
       if (response?.data?.isError) {
-        showAlertBox(response?.data?.message);
+        toast.error(response?.data?.message);
       } else {
-        showAlertBox("Bill Updated Succesfully", "success");
+        toast.success("Bill Updated Succesfully");
         setForm(defaultFormValue);
         handleCloseModal();
         fetchBillByCustomerId();
       }
     } else {
-      showAlertBox("Select Customer");
+      toast.error("Select Customer");
       return false;
     }
   };
@@ -94,7 +94,7 @@ const BillForm = ({
 
     // Validate selected date against maxDate
     if (dateValue > maxDate) {
-      showAlertBox("Selected date cannot be in the future."); // Set error if the date is invalid
+      toast.error("Selected date cannot be in the future."); // Set error if the date is invalid
       setBillDate(""); // Clear the selected date
     } else {
       setBillDate(dateValue); // Update selected date
@@ -120,7 +120,7 @@ const BillForm = ({
               e.target.value = e.target.value.replace(/[^0-9.]/g, "");
               handleInputChange(e);
               if (form.total_price <= 0) {
-                showAlertBox(
+                toast(
                   "Current Unit Not Less Then or Equal to Previouse Unit",
                   "danger"
                 );
@@ -160,7 +160,7 @@ const BillForm = ({
                 // e.target.value &&
                 // parseFloat(e.target.value) >= parseFloat(form.current_unit)
               ) {
-                showAlertBox(
+                toast(
                   "Previouse Unit Not Greater Then  or Equal to Current Unit"
                 );
                 setCurrentUnitDisabled(true);

@@ -158,15 +158,22 @@ router.put('/:id', async (req, res) => {
 });
 
 // Get bills by customer ID
-router.get('/get-bill-by-customer-id/:customer_id', async (req, res) => {
+router.get('/get-bill-by-customer-id/', async (req, res) => {
     try {
-        const customer_id = req.params.customer_id;
-        const bills = await Bill.find({ customer_id }).populate('customer_id', 'name bill_no').sort({ date: -1 }).exec();
+        const { page = 1, limit = 10, sortBy = 'date', sortOrder = 'asc', customer_id = "" } = req.query;
+
+        const sortQuery = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+        const bills = await Bill.find({ customer_id }).populate('customer_id', 'name bill_no')
+            .sort(sortQuery).limit(limit * 1)
+            .skip((page - 1) * limit).exec();
+        const count = await Bill.countDocuments({ customer_id });
         if (bills.length > 0) {
             res.json({
                 data: bills,
                 message: 'Bills retrieved successfully',
-                isError: false
+                isError: false,
+                totalPages: Math.ceil(count / limit),
+                currentPage: page,
             });
         } else {
             res.status(404).json({
