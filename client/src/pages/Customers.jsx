@@ -21,6 +21,7 @@ const Customers = ({ setShowLoader}) => {
 
   const resetForm = () => {
     setForm(defaultFormValue);
+    setSelectedCustomer(null);
   };
 
   useEffect(() => {

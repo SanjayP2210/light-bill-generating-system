@@ -30,14 +30,13 @@ function convertToDate(dateStr) {
 const updateLastBillOfCustomer = async (customer_id) => {
     try {
         const lastBill = await Bill.findOne({ customer_id }).sort({ _id: -1 });
-        if (lastBill) {
-            const updatedCustomer = await Customer.findByIdAndUpdate(
-                customer_id,
-                { last_bill_unit: lastBill.current_unit },
-                { new: true }
-            );
-            return updatedCustomer ? true : false;
-        }
+        const last_bill_unit = lastBill?.current_unit || 0;
+        const updatedCustomer = await Customer.findByIdAndUpdate(
+            customer_id,
+            { last_bill_unit: last_bill_unit },
+            { new: true }
+        );
+        return updatedCustomer ? true : false;
     } catch (error) {
         console.error('Error updating customer:', error);
         return false;
@@ -167,21 +166,13 @@ router.get('/get-bill-by-customer-id/', async (req, res) => {
             .sort(sortQuery).limit(limit * 1)
             .skip((page - 1) * limit).exec();
         const count = await Bill.countDocuments({ customer_id });
-        if (bills.length > 0) {
-            res.json({
-                data: bills,
-                message: 'Bills retrieved successfully',
-                isError: false,
-                totalPages: Math.ceil(count / limit),
-                currentPage: page,
-            });
-        } else {
-            res.status(404).json({
-                data: [],
-                message: 'No bills found for this customer. Please create a new bill',
-                isError: true
-            });
-        }
+        res.json({
+            data: bills,
+            message: 'Bills retrieved successfully',
+            isError: false,
+            totalPages: Math.ceil(count / limit),
+            currentPage: page,
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

@@ -231,7 +231,8 @@ const CustomerForm = ({
             !form.default_unit_per_rate
           }
         >
-          <IconPlus style={{ width: "20px" }} />{" "}
+          <IconPlus style={{ width: "20px" }} />
+          {"  "}
           {selectedCustomer ? "Update" : "Add"} Customer
         </Button>
         <Button
@@ -245,7 +246,8 @@ const CustomerForm = ({
           className="center-item"
           style={{ marginLeft: "20px" }}
         >
-          <IconX style={{ width: "20px", color: "red" }} /> Cancel
+          <IconX style={{ width: "20px", color: "red" }} />
+          {"   "} Cancel
         </Button>
       </div>
     </Form>

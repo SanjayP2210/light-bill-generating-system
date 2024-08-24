@@ -98,7 +98,7 @@ const InputBoxes = ({ setShowLoader }) => {
       } else {
         if (numberWithDecimal?.length > 6) {
           const { prev_unit, unit_per_rate } = form;
-          if (numberWithDecimal && prev_unit && unit_per_rate) {
+          if (numberWithDecimal && unit_per_rate) {
             const calUnit = parseFloat(numberWithDecimal) - prev_unit;
             price = parseFloat(calUnit * unit_per_rate).toFixed(2);
             setForm({
@@ -128,7 +128,6 @@ const InputBoxes = ({ setShowLoader }) => {
           setTotalValue(price);
         } else {
           setTotalValue(price);
-          price = numberWithDecimal;
           setValues(newValues);
           if (
             e.target.value.length > 0 &&
@@ -148,6 +147,7 @@ const InputBoxes = ({ setShowLoader }) => {
       const newValues = [...values];
       newValues[index] = "";
       setValues(newValues);
+      handleInput(index, e);
       if (index > 0) {
         const prevIndex = index === 0 ? index : index - 1;
         textboxesRef.current[prevIndex].focus();
@@ -182,24 +182,6 @@ const InputBoxes = ({ setShowLoader }) => {
         const data = res?.data?.data;
         setCustomers(data);
         if (data?.length == 0) {
-          //  toast(
-          //    <div className="text-center">
-          //      <p>No customer found. Please add customer</p>
-          //      <div className="center-item">
-          //        <Button onClick={() => navigate("/customer")}>ok</Button>
-          //      </div>
-          //    </div>,
-          //    {
-          //      position: "top-center",
-          //      autoClose: 5000, // Auto close after 5 seconds
-          //      hideProgressBar: false,
-          //      closeOnClick: true,
-          //      pauseOnHover: true,
-          //      closeButton: false,
-          //      draggable: true,
-          //      progress: undefined,
-          //    }
-          //  );
           navigate("/customer");
         }
       }
@@ -257,7 +239,7 @@ const InputBoxes = ({ setShowLoader }) => {
         });
         setIsNewBillGenerated(true);
         setLastBillData(res.data?.data);
-        toast.sucess("New Bill Added Successfully");
+        toast.success("New Bill Added Successfully");
         setShowLoader(false);
       }
     } catch (error) {
@@ -297,7 +279,6 @@ const InputBoxes = ({ setShowLoader }) => {
       >
         <IconPlus /> Add Bil
       </Button>
-      ;
     </>
   );
 
@@ -354,7 +335,7 @@ const InputBoxes = ({ setShowLoader }) => {
             </div>
           </Col>
 
-          {customer_id && form?.prev_unit && (
+          {customer_id && form?.prev_unit != null ? (
             <>
               <div className="center-item mt-3">
                 <h4 className="new-bill-title">
@@ -371,27 +352,29 @@ const InputBoxes = ({ setShowLoader }) => {
                   </span>
                 </h4>
               </div>
-              {totalValue > 6 && (
-                <div className="center-item mt-3">
-                  <h4 className="new-bill-title">
-                    Total Bill is :-{" "}
-                    <span style={{ color: "blue" }}>{totalValue || 0}</span>
-                  </h4>
-                </div>
-              )}
-              <br />
-              {form?.prev_unit && newValue?.length > 6 && (
-                <div className="center-item mt-3">
-                  <Button
-                    variant="outline-dark"
-                    type="button"
-                    onClick={handleShowModal}
-                  >
-                    Preview Bill
-                  </Button>
-                </div>
+              {(form?.prev_unit != null && newValue?.length > 6) && (
+                <>
+                  <div className="center-item mt-3">
+                    <h4 className="new-bill-title">
+                      Total Bill is :-{" "}
+                      <span style={{ color: "blue" }}>{totalValue || 0}</span>
+                    </h4>
+                  </div>
+                  <br />
+                  <div className="center-item mt-3">
+                    <Button
+                      variant="outline-dark"
+                      type="button"
+                      onClick={handleShowModal}
+                    >
+                      Preview Bill
+                    </Button>
+                  </div>
+                </>
               )}
             </>
+          ) : (
+            <></>
           )}
         </div>
       </Col>
