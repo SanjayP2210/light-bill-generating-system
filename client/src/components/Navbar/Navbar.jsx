@@ -7,7 +7,6 @@ import {
   IconHome,
   IconUser,
 } from "@tabler/icons-react";
-import { Nav, Navbar, OverlayTrigger, Tooltip } from "react-bootstrap";
 import Logo from "../../assets/images/logo5.png";
 import TooltipComponent from "../Common/Tooltip/TooltipComponent.jsx";
 
@@ -54,36 +53,6 @@ const NavigationBar = () => {
   };
 
   return (
-    //  <Navbar bg="dark" expand="lg" style={{ padding: "10px 20px" }}>
-    //   <Navbar.Brand>
-    //     <img
-    //       src={Logo}
-    //       onClick={(e) => {
-    //         e.preventDefault();
-    //         // navigate("/");
-    //       }}
-    //       style={{ width: "50px", height: "50px", cursor: "pointer" }}
-    //       alt="Logo"
-    //     />
-    //   </Navbar.Brand>
-    //   <Navbar.Toggle aria-controls="basic-navbar-nav" />
-    //   <Navbar.Collapse id="basic-navbar-nav">
-    //     <Nav className="navbar-container justify-content-end flex-grow-1 pe-3 me-auto">
-    //       <NavLink to="/" className="nav-link">
-    //         <IconHome />
-    //       </NavLink>
-    //       <NavLink to="/customer" className="nav-link">
-    //         <IconUser />
-    //       </NavLink>
-    //       <NavLink to="/lite-bill" className="nav-link">
-    //         <IconFile />
-    //       </NavLink>
-    //       <NavLink to="/upload-bill-from-excel" className="nav-link">
-    //         <IconDownload />
-    //       </NavLink>
-    //     </Nav>
-    //   </Navbar.Collapse>
-    // </Navbar>
     <div className="navbar">
       <div className="nav-logo">
         <img

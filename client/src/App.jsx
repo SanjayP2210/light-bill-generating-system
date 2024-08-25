@@ -11,7 +11,6 @@ import Loader from "./components/Loader/Loader";
 const App = () => {
   const [showLoader, setShowLoader] = useState(false);
   console.log(import.meta.env.VITE_APP_API_URL);
-  // toast("😊 Welcome!");
 
   return (
     <>

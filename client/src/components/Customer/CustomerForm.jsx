@@ -21,11 +21,12 @@ const CustomerForm = ({
   setForm,
   form,
   setShowLoader,
+  billNo,
+  setBillNo
 }) => {
   // State hooks
   const maxDate = getMaxDate(); // Holds the maximum allowed date for the date input
   const [rentDate, setRentDate] = useState(""); // Holds the currently selected date
-  const [billNo, setBillNo] = useState(null);
   // Handle change in date input
   const handleDateChange = (event) => {
     const dateValue = event.target.value;

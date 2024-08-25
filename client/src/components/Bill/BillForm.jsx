@@ -147,7 +147,6 @@ const BillForm = ({
             type="text"
             name="prev_unit"
             value={form?.prev_unit}
-            // readOnly={isPrevUnitSet}
             onChange={(e) => {
               e.target.value = e.target.value.replace(/[^0-9.]/g, "");
               handleInputChange(e);
@@ -157,8 +156,6 @@ const BillForm = ({
               handleInputChange(e);
               if (
                 form.total_price <= 0
-                // e.target.value &&
-                // parseFloat(e.target.value) >= parseFloat(form.current_unit)
               ) {
                 toast(
                   "Previouse Unit Not Greater Then  or Equal to Current Unit"

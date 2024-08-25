@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 const Customers = ({ setShowLoader}) => {
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [billNo, setBillNo] = useState(null);
   const apiUrl = import.meta.env.VITE_APP_API_URL;
   const defaultFormValue = {
     name: "",
@@ -22,6 +23,7 @@ const Customers = ({ setShowLoader}) => {
   const resetForm = () => {
     setForm(defaultFormValue);
     setSelectedCustomer(null);
+    setBillNo(null);
   };
 
   useEffect(() => {
@@ -68,6 +70,8 @@ const Customers = ({ setShowLoader}) => {
                 form={form}
                 setForm={setForm}
                 setShowLoader={setShowLoader}
+                setBillNo={setBillNo}
+                billNo={billNo}
               />
             </Card.Body>
           </Card>

@@ -58,8 +58,11 @@ const InputBoxes = ({ setShowLoader }) => {
   };
 
   useEffect(() => {
+    setValues(Array(6).fill(""));
+    setForm(defaultFormValue);
+    setNewValue(0);
+    setTotalValue(0);
     if (customer_id) {
-      setValues(Array(6).fill(""));
       // fetchLastBill();
       setCustomerName(customer_id?.name);
       setForm({
@@ -194,31 +197,6 @@ const InputBoxes = ({ setShowLoader }) => {
     }
   };
 
-  // const fetchLastBill = async () => {
-  //   try {
-  //     const res = await axios.get(
-  //       `${apiUrl}/bills/get-last-bill/${customer_id?.value}`
-  //     );
-  //     if (res?.data?.isError) {
-  //       setLastBillData(null);
-  //       toast(res?.data?.message);
-  //     } else {
-  //       setLastBillData(res.data?.data);
-  //       const lastBill = res?.data?.data;
-  //       const {current_unit= 0, unit_per_rate= 8 } = lastBill;
-  //       setForm({
-  //         ...form,
-  //         prev_unit: current_unit,
-  //         unit_per_rate,
-
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching customers:", error);
-  //     toast("Error fetching customers",);
-  //   }
-  // };
-
   const addBill = async () => {
     try {
       const formData = {
@@ -299,17 +277,6 @@ const InputBoxes = ({ setShowLoader }) => {
               setCustomerId={setCustomerId}
               customer_id={customer_id}
             />
-            {/* <Form.Control.Feedback
-              style={{
-                display: lastBillData === null ? "block" : "none",
-                fontSize: "14px",
-                fontWeight: "bold",
-                fontFamily: "sans-serif",
-              }}
-              type="invalid"
-            >
-              No Bill Found For This Customer. Please Create New Bill
-            </Form.Control.Feedback> */}
           </Col>
           <Col md={12} sm={12}>
             <div className="input-group input-group-sm input-box">

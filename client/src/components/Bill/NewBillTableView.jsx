@@ -83,7 +83,6 @@ const NewBillTableView = ({
         </div>
         <Table
           responsive
-          //   striped
           bordered
           hover
           style={{

@@ -168,23 +168,6 @@ const Bill = ({ setShowLoader }) => {
     setTypeOfModal("table");
     setShowFooter(true);
     setShowModal(true);
-    // try {
-    //   const response = await axios.get(
-    //     `${apiUrl}/bills/generate-pdf-by-lite-bill/${id}`,
-    //     {
-    //       responseType: "blob",
-    //     }
-    //   );
-    //   const url = window.URL.createObjectURL(new Blob([response.data]));
-    //   const link = document.createElement("a");
-    //   link.href = url;
-    //   link.setAttribute("download", "bills.pdf");
-    //   document.body.appendChild(link);
-    //   link.click();
-    // } catch (error) {
-    //   console.error("Error generating PDF by ID:", error);
-    //   toast("Error generating PDF by ID");
-    // }
   };
 
   const generateExcel = () => {
