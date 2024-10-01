@@ -64,6 +64,15 @@
     }
 }
 
+/* Small screens (mobile) */
+@media (max-width: 400px) {
+    .textbox {
+        font-size: 18px !important;
+        width: 50px !important;
+        height: 50px !important;
+    }
+}
+
 /* Medium screens (tablet) */
 @media (min-width: 601px) and (max-width: 1024px) {
     .textbox {
