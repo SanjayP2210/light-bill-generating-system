@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { Button, Form, InputGroup } from "react-bootstrap";
+import { IconX } from "@tabler/icons-react";
 
 const UploadExcel = ({
   handleFileUpload,
@@ -22,9 +23,10 @@ const UploadExcel = ({
           variant="outline-danger"
           disabled={!selectedFile?.name}
           id="button-addon2"
+          aria-label="Clear selected file"
           onClick={clearFile}
         >
-          x
+          <IconX size={18} stroke={1.75} />
         </Button>
       </InputGroup>
     </div>

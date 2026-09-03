@@ -1,0 +1,96 @@
+.language-switcher-mobile {
+  margin-top: 10px;
+}
+
+.language-switcher-topbar .language-switcher-toggle {
+  width: auto;
+  min-height: 38px;
+  padding: 8px 10px;
+  background: transparent;
+  color: rgba(255, 255, 255, .82);
+}
+
+.language-switcher-topbar .language-switcher-toggle:hover,
+.language-switcher-topbar .language-switcher-toggle:focus {
+  background: rgba(255, 255, 255, .1);
+  color: #fff;
+}
+
+.language-switcher-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 10px 15px;
+  border: 0;
+  border-radius: 10px;
+  font-size: .88rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.language-switcher-toggle::after {
+  margin-left: auto;
+}
+
+.language-switcher-mobile .language-switcher-toggle {
+  background: transparent;
+  color: #475569;
+}
+
+.language-switcher-mobile .language-switcher-toggle:hover,
+.language-switcher-mobile .language-switcher-toggle:focus {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.language-switcher-menu {
+  min-width: 160px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 7px;
+  box-shadow: 0 15px 35px rgba(15, 23, 42, .14);
+}
+
+.language-switcher-menu .dropdown-item {
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-weight: 500;
+}
+
+.language-switcher-menu .dropdown-item:hover {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.language-switcher-menu .dropdown-item.active {
+  color: #fff;
+  background: #2563eb;
+}
+
+/* Hide the default Google Translate widget + banner; we drive it via our own dropdown. */
+#google_translate_element {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* Older Google Translate builds use .goog-te-banner-frame; current builds
+   wrap the banner in a hashed, unstable class name, so also hide any
+   direct skiptranslate child of body (the wrapper it's always given). */
+.goog-te-banner-frame,
+body > .skiptranslate {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+.goog-text-highlight {
+  background: none !important;
+  box-shadow: none !important;
+}

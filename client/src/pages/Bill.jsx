@@ -14,6 +14,8 @@ import { toast } from "react-toastify";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { IconFileText } from "@tabler/icons-react";
+import homeBannerImage from "../assets/home-screen-banner.png";
 
 const Bill = ({ setShowLoader }) => {
   const [customers, setCustomers] = useState([]);
@@ -266,7 +268,7 @@ const Bill = ({ setShowLoader }) => {
           <Card>
             <Card.Header className="customer-form">
               <div className="center-item">
-                <h4>Bill Form</h4>
+                <h4 className="section-title">Bill Form</h4>
               </div>
             </Card.Header>
             <Card.Body>
@@ -286,37 +288,63 @@ const Bill = ({ setShowLoader }) => {
 
   return (
     <>
-      <Container>
-        <div className="center-item">
-          <h1 className="mt-4">Bill System</h1>
+      <Container className="app-container">
+        <div className="page-hero">
+          <div className="page-hero-copy">
+          <div className="page-hero-icon">
+            <IconFileText size={28} stroke={1.75} />
+          </div>
+          <div>
+            <p className="page-hero-eyebrow">Bills</p>
+            <h1 className="page-hero-title">Bill System</h1>
+            <p className="page-hero-subtitle">
+              Select a customer to view, export, or manage their bills.
+            </p>
+          </div>
+          </div>
+           <div className="page-hero-art" aria-hidden="true">
+                      <img src={homeBannerImage} alt="Bill illustration" />
+                    </div>
         </div>
-        <Row className="mb-4">
-          <Col md={{ span: 4, offset: 3 }}>
-            <CustomerSelector
-              customers={customers}
-              setCustomerId={setCustomerId}
-              customer_id={customer_id}
-            />
-          </Col>
-          <Col md={2} style={{ marginTop: "30px" }}>
-            <GeneratePDF
-              disabled={!customer_id?.value && bills.length === 0}
-              generatePDF={generatePDF}
-            />
-          </Col>
-          <Col md={2} style={{ marginTop: "30px" }}>
-            <GenerateExcel
-              disabled={!customer_id?.value && bills.length === 0}
-              generateExcel={generateExcel}
-            />
-          </Col>
-        </Row>
+        <Card className="mb-4">
+          <Card.Body>
+            <Row className="align-items-end g-3">
+              <Col md={6}>
+                <CustomerSelector
+                  customers={customers}
+                  setCustomerId={setCustomerId}
+                  customer_id={customer_id}
+                />
+              </Col>
+              <Col xs={6} md={3}>
+                <GeneratePDF
+                  disabled={!customer_id?.value && bills.length === 0}
+                  generatePDF={generatePDF}
+                />
+              </Col>
+              <Col xs={6} md={3}>
+                <GenerateExcel
+                  disabled={!customer_id?.value && bills.length === 0}
+                  generateExcel={generateExcel}
+                />
+              </Col>
+            </Row>
+          </Card.Body>
+        </Card>
         <Row>
           <Col>
             <Card>
               <Card.Header className="customer-form">
-                <div className="center-item">
-                  <h4>Bill Table</h4>
+                <div className="card-title-row">
+                  <div className="card-title-icon">
+                    <IconFileText size={20} stroke={1.75} />
+                  </div>
+                  <div className="card-title-text">
+                    <h4 className="section-title">Bill Table</h4>
+                    <span className="helper-text">
+                      Generated bills for the selected customer
+                    </span>
+                  </div>
                 </div>
               </Card.Header>
               <Card.Body>

@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 const BillSchema = new mongoose.Schema({
+    user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     customer_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
     current_unit: Number,
     prev_unit: Number,

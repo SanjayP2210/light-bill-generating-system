@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 360" fill="none">
+  <defs>
+    <radialGradient id="cbGlow" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#bfdbfe" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#bfdbfe" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cbBlob" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#dbeafe"/>
+      <stop offset="100%" stop-color="#93c5fd"/>
+    </linearGradient>
+    <linearGradient id="cbCard" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f4f8ff"/>
+    </linearGradient>
+    <linearGradient id="cbBadge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="cbLeaf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#1e40af"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="280" cy="180" r="165" fill="url(#cbGlow)"/>
+  <path d="M120 240c-40-60-10-150 80-170s190 10 210 90 -30 150-120 160 -140-10-170-80z" fill="url(#cbBlob)" opacity="0.55"/>
+
+  <!-- leaves -->
+  <path d="M95 300c10-70 55-115 120-125-15 65-55 105-120 125z" fill="url(#cbLeaf)" opacity="0.85"/>
+  <path d="M120 305c25-55 70-85 130-88-25 50-70 78-130 88z" fill="url(#cbLeaf)" opacity="0.65"/>
+
+  <!-- floating dots -->
+  <circle cx="90" cy="90" r="16" fill="#3b82f6" opacity="0.8"/>
+  <circle cx="470" cy="110" r="12" fill="#2563eb" opacity="0.7"/>
+  <circle cx="480" cy="230" r="9" fill="#60a5fa" opacity="0.7"/>
+  <circle cx="130" cy="60" r="6" fill="#60a5fa" opacity="0.6"/>
+
+  <!-- dotted grid -->
+  <g fill="#93c5fd" opacity="0.6">
+    <circle cx="60" cy="200" r="3"/><circle cx="78" cy="200" r="3"/><circle cx="96" cy="200" r="3"/>
+    <circle cx="60" cy="218" r="3"/><circle cx="78" cy="218" r="3"/><circle cx="96" cy="218" r="3"/>
+    <circle cx="60" cy="236" r="3"/><circle cx="78" cy="236" r="3"/><circle cx="96" cy="236" r="3"/>
+  </g>
+
+  <!-- contact card -->
+  <g transform="translate(190,95)">
+    <rect x="0" y="0" width="200" height="200" rx="24" fill="url(#cbCard)" stroke="#e2e8f0" stroke-width="1"/>
+    <!-- avatar -->
+    <circle cx="100" cy="60" r="34" fill="#dbeafe"/>
+    <circle cx="100" cy="50" r="14" fill="#60a5fa"/>
+    <path d="M70 92c0-18 14-28 30-28s30 10 30 28" fill="#60a5fa"/>
+    <!-- lines -->
+    <rect x="40" y="130" width="120" height="10" rx="5" fill="#c7dcff"/>
+    <rect x="55" y="150" width="90" height="8" rx="4" fill="#dbeafe"/>
+    <rect x="65" y="168" width="70" height="8" rx="4" fill="#dbeafe"/>
+  </g>
+
+  <!-- badge -->
+  <g transform="translate(345,110)">
+    <circle cx="0" cy="0" r="34" fill="url(#cbBadge)"/>
+    <path d="M-12 6c0-9 6-14 12-14s12 5 12 14" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <circle cx="0" cy="-9" r="7" stroke="#fff" stroke-width="3.5" fill="none"/>
+  </g>
+</svg>

@@ -1,9 +1,9 @@
 /* eslint-disable react/prop-types */
-import { Table } from "react-bootstrap";
+import { Form, InputGroup, Table } from "react-bootstrap";
 import axios from "axios";
 import { formatDate } from "../../Utilities/Utils";
 import { useState } from "react";
-import { IconCheck, IconEdit, IconList, IconX } from "@tabler/icons-react";
+import { IconCheck, IconEdit, IconList, IconSearch, IconX } from "@tabler/icons-react";
 
 const CustomerList = ({
   customers,
@@ -13,6 +13,7 @@ const CustomerList = ({
   setShowLoader,
 }) => {
   const [currentTab, setCurrentTab] = useState("all");
+  const [search, setSearch] = useState("");
   const apiUrl = import.meta.env.VITE_APP_API_URL;
   // const deleteCustomer = async (id) => {
   //   try {
@@ -49,12 +50,19 @@ const CustomerList = ({
   };
 
   const filterItem = () => {
+    const searchTerm = search.trim().toLowerCase();
     const filterItems = customers?.filter((item) => {
-      return currentTab === "all"
-        ? item
-        : currentTab === "active"
-        ? item?.isActive
-        : !item?.isActive;
+      const matchesTab =
+        currentTab === "all"
+          ? true
+          : currentTab === "active"
+          ? item?.isActive
+          : !item?.isActive;
+      const matchesSearch =
+        !searchTerm ||
+        item?.name?.toLowerCase().includes(searchTerm) ||
+        item?.mobile_number?.toLowerCase().includes(searchTerm);
+      return matchesTab && matchesSearch;
     });
 
     if (filterItems?.length > 0) {
@@ -98,6 +106,16 @@ const CustomerList = ({
                   textDecoration: !item?.isActive ? "line-through" : "none",
                 }}
               >
+                {item?.floor_no || "-"}
+              </p>
+            </td>
+            <td>
+              {" "}
+              <p
+                style={{
+                  textDecoration: !item?.isActive ? "line-through" : "none",
+                }}
+              >
                 {item?.default_unit_per_rate}
               </p>
             </td>
@@ -126,36 +144,35 @@ const CustomerList = ({
                 <a
                   className="fs-6 text-muted"
                   href="javascript:void(0)"
+                  aria-label={`Edit ${item?.name}`}
                   onClick={() => {
                     setSelectedCustomer(item);
                   }}
                 >
-                  {/* <i
-                    style={{ color: "var(--bs-primary)" }}
-                    className="ti ti-edit"
-                  ></i> */}
                   <IconEdit
-                    size={24}
-                    stroke={2}
+                    size={22}
+                    stroke={1.75}
                     style={{ color: "var(--bs-primary)" }}
-                    color="black"
                   />
                 </a>
               )}
               <a
                 className="fs-6 text-muted"
                 href="javascript:void(0)"
-                style={{ marginLeft: "20px" }}
+                style={{ marginLeft: "16px" }}
+                aria-label={
+                  item?.isActive
+                    ? `Deactivate ${item?.name}`
+                    : `Activate ${item?.name}`
+                }
                 onClick={() => {
                   handleActiveDeactive(item?._id, item);
                 }}
               >
                 {item?.isActive ? (
-                  <IconX style={{ color: "red" }} />
+                  <IconX size={22} stroke={1.75} style={{ color: "var(--color-red-600)" }} />
                 ) : (
-                  // <i style={{ color: "red" }} className="ti ti-x"></i>
-                  <IconCheck style={{ color: "green" }} />
-                  // <i style={{ color: "green" }} className="ti ti-check"></i>
+                  <IconCheck size={22} stroke={1.75} style={{ color: "var(--color-green-600)" }} />
                 )}
               </a>
             </td>
@@ -165,7 +182,7 @@ const CustomerList = ({
     } else {
       return (
         <tr>
-          <td colSpan="7" style={{ textAlign: "center", color: "black" }}>
+          <td colSpan="8" style={{ textAlign: "center", color: "var(--color-text-muted)" }}>
             <p>
               <b>No Data Found</b>
             </p>
@@ -178,6 +195,19 @@ const CustomerList = ({
     <>
       <div className="card">
         <div className="card-body customer-table">
+          <InputGroup className="mb-3 search-input-group">
+            <InputGroup.Text>
+              <IconSearch size={18} stroke={1.75} />
+            </InputGroup.Text>
+            <Form.Control
+              type="text"
+              placeholder="Search customers by name or mobile number"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search customers"
+            />
+          </InputGroup>
+
           <ul className="filter-buttons p-3 mb-3 rounded card flex-row center-item">
             <button
               onClick={(e) => {
@@ -189,6 +219,7 @@ const CustomerList = ({
                 currentTab === "all" ? "active btn-dark" : "btn-outline-dark"
               }`}
               id="all-tab"
+              aria-pressed={currentTab === "all"}
             >
               <IconList style={{ width: "17px" }} />{" "}
               <span className="fw-medium">All</span>
@@ -203,8 +234,9 @@ const CustomerList = ({
                 currentTab === "active" ? "active btn-dark" : "btn-outline-dark"
               }`}
               id="active-tab"
+              aria-pressed={currentTab === "active"}
             >
-              <IconCheck style={{ width: "20px", color: "green" }} />{" "}
+              <IconCheck style={{ width: "20px", color: "var(--color-green-600)" }} />{" "}
               {/* <i className="ti ti-check fill-white"></i> */}
               <span className="fw-medium">Active</span>
             </button>
@@ -220,8 +252,9 @@ const CustomerList = ({
                   : "btn-outline-dark"
               }`}
               id="deactive-tab"
+              aria-pressed={currentTab === "de-active"}
             >
-              <IconX style={{ width: "20px", color: "red" }} />{" "}
+              <IconX style={{ width: "20px", color: "var(--color-red-600)" }} />{" "}
               <span className="fw-medium">Deactive</span>
             </button>
           </ul>
@@ -233,6 +266,7 @@ const CustomerList = ({
                   <th>Name</th>
                   <th>Mobile Number</th>
                   <th>Meter No</th>
+                  <th>Floor No</th>
                   <th>Default Rate</th>
                   <th>Last Bill</th>
                   <th>Rent Date</th>

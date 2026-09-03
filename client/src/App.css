@@ -1,8 +1,144 @@
-@import url(https://fonts.googleapis.com/css?family=Roboto);
+/* ==========================================================================
+   Modern Blue Professional — design tokens and component skin.
+   Styling only: no functional/behavioral rules live in this file.
+   ========================================================================== */
 
 :root {
-  font-family: 'circular', 'sans-serif' !important;
-  --bs-font-sans-serif: 'circular', 'sans-serif' !important;
+  /* ---- Design system tokens ---- */
+  --color-primary: #2563eb;
+  --color-primary-dark: #1e40af;
+  --color-primary-light: #dbeafe;
+  --color-secondary: #3b82f6;
+  --color-success: #16a34a;
+  --color-success-light: #dcfce7;
+  --color-danger: #ef4444;
+  --color-danger-light: #fee2e2;
+  --color-accent: #7c3aed;
+  --color-warning: #d97706;
+  --color-warning-light: #fffbeb;
+
+  --color-bg: #f1f5f9;
+  --color-card: #ffffff;
+  --color-text: #0f172a;
+  --color-text-secondary: #64748b;
+  --color-border: #e2e8f0;
+
+  /* ---- Exact token names from the design spec (aliases) ---- */
+  --primary: var(--color-primary);
+  --primary-dark: var(--color-primary-dark);
+  --primary-light: var(--color-primary-light);
+  --secondary: var(--color-secondary);
+  --accent: var(--color-accent);
+  --success: var(--color-success);
+  --success-light: var(--color-success-light);
+  --danger: var(--color-danger);
+  --danger-light: var(--color-danger-light);
+  --background: var(--color-bg);
+  --surface: var(--color-card);
+  --text-primary: var(--color-text);
+  --text-secondary: var(--color-text-secondary);
+  --border: var(--color-border);
+  --navy: #0f172a;
+  --navy-light: #172554;
+
+  /* ---- Legacy aliases (kept so existing inline styles stay in sync) ---- */
+  --color-navy-900: #0f172a;
+  --color-navy-800: var(--color-primary-dark);
+  --color-navy-700: var(--color-primary-dark);
+  --color-navy-600: var(--color-primary);
+  --color-navy-500: var(--color-secondary);
+  --color-navy-100: var(--color-primary-light);
+  --color-red-600: var(--color-danger);
+  --color-red-700: #dc2626;
+  --color-green-600: var(--color-success);
+  --color-green-700: #15803d;
+  --color-gold-500: var(--color-accent);
+  --color-text-muted: var(--color-text-secondary);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.10);
+
+  font-family: 'Inter', 'Poppins', system-ui, sans-serif;
+  --bs-font-sans-serif: 'Inter', 'Poppins', system-ui, sans-serif;
+  /* Bootstrap uses --bs-body-bg as the default surface color for form
+     controls, dropdowns, popovers, tooltips, etc. — not just <body> (which
+     we set directly below) — so this must stay white, not the page bg. */
+  --bs-body-bg: var(--color-card);
+  --bs-body-color: var(--color-text);
+  --bs-border-radius: var(--radius-md);
+  --bs-border-color: var(--color-border);
+  --bs-primary: var(--color-primary);
+  --bs-primary-rgb: 37, 99, 235;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Bootstrap's base reset underlines every <a>; most of the app's links are
+   nav items / icon buttons styled as anchors, not inline text links, so
+   default to no underline and let specific text links re-add it on hover. */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  font-weight: 600;
+  color: var(--color-text);
+  text-shadow: none;
+}
+
+/* ---- Typography hierarchy ---- */
+
+.page-title {
+  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.4rem, 1.1rem + 1vw, 1.9rem);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.page-subtitle {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  margin: 0.25rem 0 0;
+}
+
+.section-title {
+  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.helper-text {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.value-amount {
+  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
 }
 
 /* Hide the up and down arrows in Webkit browsers (Chrome, Safari) */
@@ -17,73 +153,222 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-.customer-form {
-  background-color: black !important;
-  color: white !important;
+/* --------------------------------------------------------------------------
+   Hero banner
+   -------------------------------------------------------------------------- */
+
+.page-hero {
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
 }
 
-/* .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.page-hero-icon {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+.page-hero-eyebrow {
+  color: var(--color-primary-dark);
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin: 0 0 0.15rem;
+}
+
+.page-hero-title {
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.3rem, 1.05rem + 1vw, 1.7rem);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.page-hero-subtitle {
+  color: var(--color-text-secondary);
+  font-size: 0.92rem;
+  margin: 0.3rem 0 0;
+}
+
+@media (max-width: 575px) {
+  .page-hero {
+    padding: 1.25rem;
+    gap: 0.85rem;
+  }
+
+  .page-hero-icon {
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Card section title with icon badge (e.g. "Add Your New Bill")
+   -------------------------------------------------------------------------- */
+
+.card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card-title-icon {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-title-text .section-title {
+  text-align: left;
+}
+
+.card-title-text .helper-text {
+  display: block;
+  margin-top: 0.1rem;
+}
+
+/* --------------------------------------------------------------------------
+   Layout shell
+   -------------------------------------------------------------------------- */
+
+.app-shell {
+  min-height: calc(100vh - 64px);
+  padding-bottom: 2.5rem;
+}
+
+.app-container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+@media (min-width: 768px) {
+  .app-container {
+    padding: 2rem 1.5rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Cards / panels / forms
+   -------------------------------------------------------------------------- */
 
 .card {
-  padding: 2em;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-sm) !important;
+  background-color: var(--color-card) !important;
 }
 
-.read-the-docs {
-  color: #888;
-} */
+.customer-form {
+  background: var(--color-card) !important;
+  color: var(--color-text) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  border-top-left-radius: var(--radius-lg) !important;
+  border-top-right-radius: var(--radius-lg) !important;
+  padding: 1rem 1.25rem !important;
+}
 
+.customer-form h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
 
-.form-control:focus {
+.form-label {
+  font-weight: 500;
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.form-control,
+.form-select {
+  border-radius: var(--radius-sm) !important;
+  border-color: var(--color-border) !important;
+  min-height: 42px;
+  color: var(--color-text) !important;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.form-control::placeholder {
+  color: #94a3b8;
+}
+
+.input-group-text {
+  background-color: var(--color-bg) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-secondary) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+.input-group:focus-within .input-group-text {
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+}
+
+.form-control:disabled,
+.form-control[readonly] {
+  background-color: var(--color-bg) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.form-control:focus,
+.form-select:focus {
   color: var(--bs-body-color) !important;
   background-color: var(--bs-body-bg) !important;
-  border-color: #21252945 !important;
+  border-color: var(--color-primary) !important;
   outline: 0 !important;
-  box-shadow: 0 0 0 .25rem #21252945 !important;
+  box-shadow: 0 0 0 .2rem rgba(37, 99, 235, 0.18) !important;
 }
-
 
 .bill-modal-body {
   padding: 0px !important;
-  box-shadow: 0 0 20px 5px black !important;
+  box-shadow: var(--shadow-lg) !important;
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
 }
 
+.modal-content {
+  border-radius: var(--radius-lg) !important;
+  border: none !important;
+}
 
-.customer-table .btn.active {
-  color: white !important;
-  background-color: black !important;
+.modal-header {
+  background: var(--color-card);
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  border-top-left-radius: var(--radius-lg) !important;
+  border-top-right-radius: var(--radius-lg) !important;
+}
+
+.modal-footer {
+  border-top: 1px solid var(--color-border) !important;
 }
 
 .red-input-box {
-  background-color: red;
-  color: white
+  background-color: var(--color-danger-light);
+  color: var(--color-danger);
+  border-radius: var(--radius-sm);
+  font-weight: 700 !important;
 }
-
 
 .center-item {
   display: flex !important;
@@ -91,13 +376,143 @@ input[type="number"] {
   align-items: center !important;
 }
 
+/* --------------------------------------------------------------------------
+   Buttons — premium skin over Bootstrap's variant custom properties.
+   -------------------------------------------------------------------------- */
+
+.btn {
+  --bs-btn-border-radius: var(--radius-sm);
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  padding-top: .55rem;
+  padding-bottom: .55rem;
+  min-height: 42px;
+  box-shadow: none;
+  transition: transform .12s ease, box-shadow .15s ease, background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.btn:focus-visible {
+  box-shadow: 0 0 0 .2rem rgba(37, 99, 235, 0.3) !important;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-sm {
+  min-height: 34px;
+}
+
+.btn-dark {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--color-primary);
+  --bs-btn-border-color: var(--color-primary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--color-primary-dark);
+  --bs-btn-hover-border-color: var(--color-primary-dark);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--color-primary-dark);
+  --bs-btn-active-border-color: var(--color-primary-dark);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: #93b4f6;
+  --bs-btn-disabled-border-color: #93b4f6;
+}
+
+.btn-outline-dark {
+  --bs-btn-color: var(--color-primary);
+  --bs-btn-border-color: var(--color-border);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--color-primary);
+  --bs-btn-hover-border-color: var(--color-primary);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--color-primary-dark);
+  --bs-btn-active-border-color: var(--color-primary-dark);
+  --bs-btn-disabled-color: #94a3b8;
+  --bs-btn-disabled-border-color: var(--color-border);
+  background-color: var(--color-card);
+}
+
+.btn-warning {
+  --bs-btn-color: #78350f;
+  --bs-btn-bg: #fbbf24;
+  --bs-btn-border-color: #fbbf24;
+  --bs-btn-hover-color: #78350f;
+  --bs-btn-hover-bg: #f59e0b;
+  --bs-btn-hover-border-color: #f59e0b;
+}
+
+.btn-danger {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--color-danger);
+  --bs-btn-border-color: var(--color-danger);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--color-red-700);
+  --bs-btn-hover-border-color: var(--color-red-700);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--color-red-700);
+  --bs-btn-active-border-color: var(--color-red-700);
+}
+
+.btn-outline-danger {
+  --bs-btn-color: var(--color-danger);
+  --bs-btn-border-color: var(--color-border);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--color-danger);
+  --bs-btn-hover-border-color: var(--color-danger);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--color-red-700);
+  --bs-btn-active-border-color: var(--color-red-700);
+  background-color: var(--color-card);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--color-primary);
+  --bs-btn-border-color: var(--color-border);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--color-primary);
+  --bs-btn-hover-border-color: var(--color-primary);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--color-primary-dark);
+  --bs-btn-active-border-color: var(--color-primary-dark);
+  background-color: var(--color-card);
+}
+
+.btn-outline-success {
+  --bs-btn-color: var(--color-success);
+  --bs-btn-border-color: var(--color-border);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--color-success);
+  --bs-btn-hover-border-color: var(--color-success);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--color-green-700);
+  --bs-btn-active-border-color: var(--color-green-700);
+  background-color: var(--color-card);
+}
+
+.badge.bg-secondary {
+  background-color: var(--color-primary-light) !important;
+  color: var(--color-primary-dark) !important;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  padding: 0.4em 0.7em;
+}
+
 .filter-buttons {
   flex-wrap: wrap;
+  background-color: var(--color-bg) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: none !important;
 }
 
 .filter-buttons button {
-  min-width: 150px;
-  margin: 10px
+  min-width: 130px;
+  margin: 5px;
+  border-radius: var(--radius-sm) !important;
 }
 
 .action-buttons {
@@ -105,14 +520,17 @@ input[type="number"] {
 }
 
 .action-buttons button {
-  min-width: 20px;
-  margin: 5px;
-  padding:5px
+  min-width: 40px;
+  margin: 3px;
+  padding: 6px 10px
 }
 
+/* --------------------------------------------------------------------------
+   Navigation
+   -------------------------------------------------------------------------- */
 
-.navbar-nav .active{
-  color:red
+.navbar-nav .active {
+  color: var(--color-primary)
 }
 
 .nav-link {
@@ -127,18 +545,1043 @@ input[type="number"] {
   transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out
 }
 
-
-h4{
-  margin:0 auto !important;
+h4 {
+  margin: 0 auto !important;
 }
 
-.page-link{
-  color: black !important;
-  background-color: white !important;
+/* --------------------------------------------------------------------------
+   Tables
+   -------------------------------------------------------------------------- */
+
+.table {
+  --bs-table-bg: var(--color-card);
+  --bs-table-striped-bg: #f8fafc;
+  --bs-table-hover-bg: var(--color-primary-light);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.table thead th {
+  background-color: #f1f5f9;
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-color: var(--color-border);
+  white-space: nowrap;
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
+}
+
+.table td, .table th {
+  border-color: var(--color-border);
+  vertical-align: middle;
+  padding: 0.65rem 0.75rem;
+}
+
+.table-responsive {
+  border-radius: var(--radius-md);
+}
+
+.customer-table .btn.active {
+  color: #fff !important;
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Pagination
+   -------------------------------------------------------------------------- */
+
+.page-link {
+  color: var(--color-text) !important;
+  background-color: var(--color-card) !important;
+  border-color: var(--color-border) !important;
+  border-radius: var(--radius-sm) !important;
+  margin: 0 2px;
 }
 
 .active>.page-link,
-.page-link.active{
-  color: white !important;
-  background-color: black !important;
+.page-link.active {
+  color: #fff !important;
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Summary cards (Bill Summary)
+   -------------------------------------------------------------------------- */
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 991px) {
+  .summary-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 575px) {
+  .summary-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.summary-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  transition: box-shadow .15s ease, transform .15s ease;
+}
+
+.summary-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.summary-card-icon {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.summary-card.accent .summary-card-icon {
+  background: #ede9fe;
+  color: var(--color-accent);
+}
+
+.summary-card-label {
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin: 0 0 0.15rem;
+}
+
+.summary-card-value {
+  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.summary-card.total {
+  border: 2px solid var(--color-success);
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+.summary-card.total .summary-card-icon {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.summary-card.total .summary-card-label {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.summary-card.total .summary-card-value {
+  color: var(--color-text);
+  font-size: 1.6rem;
+}
+
+/* --------------------------------------------------------------------------
+   Meter reading boxes
+   -------------------------------------------------------------------------- */
+
+.meter-reading-label {
+  font-weight: 500;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.btn-preview-bill {
+  font-size: 1rem;
+  min-height: 48px;
+  padding-left: 1.75rem;
+  padding-right: 1.75rem;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent)) !important;
+  border: none !important;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25) !important;
+}
+
+.btn-preview-bill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35) !important;
+}
+
+@media (max-width: 575px) {
+  .btn-preview-bill {
+    width: 100%;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Authentication pages (login / register / forgot / reset password)
+   -------------------------------------------------------------------------- */
+
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem 2rem;
+  /* background-color: var(--color-bg); */
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 550px;
+  min-width: 550px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 2rem;
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 1.5rem 1.25rem;
+  }
+}
+
+.auth-card-header {
+  text-align: center;
+  margin-bottom: 0.2rem;
+}
+
+.auth-card-title {
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: var(--color-text);
+  margin-bottom: 0.25rem;
+}
+
+.auth-card-subtitle {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.auth-error {
+  background-color: var(--color-danger-light);
+  color: var(--color-danger);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.85rem;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.auth-success {
+  background-color: var(--color-success-light);
+  color: var(--color-success);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.85rem;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.auth-footer-text {
+  text-align: center;
+  margin-top: 1.25rem;
+  font-size: 0.88rem;
+  color: var(--color-text-secondary);
+}
+
+.auth-footer-text a {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-footer-text a:hover {
+  text-decoration: underline;
+}
+
+.password-toggle-btn {
+  background-color: var(--color-card) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.password-toggle-btn:hover,
+.password-toggle-btn:focus {
+  color: var(--color-primary) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Avatar / profile
+   -------------------------------------------------------------------------- */
+
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  font-weight: 700;
+  font-size: 0.95rem;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-circle.lg {
+  width: 88px;
+  height: 88px;
+  font-size: 1.75rem;
+}
+
+.user-menu-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.user-menu-toggle:hover {
+  background-color: var(--color-primary-light);
+}
+
+.user-menu-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.status-badge.active {
+  background-color: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.status-badge.inactive {
+  background-color: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  text-transform: capitalize;
+}
+
+
+/* ==========================================================================
+   REFERENCE UI POLISH
+   Desktop dashboard shell + responsive mobile layout.
+   These rules are presentation-only and do not change application behavior.
+   ========================================================================== */
+
+html {
+  background: #f1f5f9;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background:
+    radial-gradient(circle at 80% 10%, rgba(219,234,254,.42), transparent 28%),
+    #f1f5f9;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Desktop content sits beside the blue navigation rail. */
+@media (min-width: 992px) {
+  .app-shell {
+    margin-left: 228px;
+    padding-top: 70px;
+    min-height: calc(100vh - 70px);
+    padding-bottom: 36px;
+  }
+
+  .app-container {
+    width: min(1120px, calc(100% - 48px));
+    max-width: 1120px;
+    padding: 28px 0 40px;
+  }
+}
+
+/* Keep guest/auth screens centered instead of inheriting dashboard spacing. */
+.auth-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Login nests its card inside .auth-shell, which already centers the
+   whole column (hero + card) inside .auth-page-bg — don't double up. */
+.auth-shell .auth-page {
+  min-height: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Home hero — closer to the supplied reference image
+   -------------------------------------------------------------------------- */
+
+.page-hero {
+  position: relative;
+  min-height: 172px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  padding: 28px 34px;
+  border: 1px solid #c7dcff;
+  border-radius: 17px;
+  background:
+    radial-gradient(circle at 80% 45%, rgba(255,255,255,.72), transparent 30%),
+    linear-gradient(135deg, #f4f8ff 0%, #e5efff 52%, #dbeafe 100%);
+  box-shadow: 0 7px 24px rgba(37,99,235,.06);
+}
+
+.page-hero-copy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.page-hero-icon {
+  width: 58px;
+  height: 58px;
+  min-width: 58px;
+  border-radius: 15px;
+  background: linear-gradient(145deg,#2563eb,#3b82f6);
+  box-shadow: 0 9px 22px rgba(37,99,235,.27);
+}
+
+.page-hero-eyebrow {
+  margin-bottom: 3px;
+  font-size: .84rem;
+  letter-spacing: .01em;
+}
+
+.page-hero-title {
+  font-size: clamp(1.7rem, 1.35rem + .75vw, 2.15rem);
+  letter-spacing: -.035em;
+}
+
+.page-hero-subtitle {
+  margin-top: 6px;
+  font-size: .9rem;
+}
+
+.page-hero-art {
+  position: absolute;
+  right: 36px;
+  top: 10px;
+  width: 270px;
+  height: 155px;
+  pointer-events: none;
+
+  img{
+    width: 270px;
+    height: auto;
+  }
+}
+
+.hero-art-sheet {
+  position: absolute;
+  right: 55px;
+  top: 12px;
+  width: 102px;
+  height: 132px;
+  padding: 17px 14px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.92);
+  color: #7c83ff;
+  box-shadow: 0 15px 28px rgba(30,64,175,.13);
+  transform: rotate(1deg);
+}
+
+.hero-art-line {
+  display: block;
+  height: 5px;
+  margin-top: 9px;
+  border-radius: 5px;
+  background: #d6dcff;
+  width: 72px;
+}
+
+.hero-art-line.long { width: 82px; }
+.hero-art-line.short { width: 45px; }
+
+.hero-art-coin {
+  position: absolute;
+  right: 24px;
+  top: 18px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(145deg,#315ef2,#273ed0);
+  color: white;
+  box-shadow: 0 8px 18px rgba(37,99,235,.25);
+}
+
+.hero-art-dot {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #7b83f6;
+  opacity: .88;
+}
+
+.hero-art-dot.dot-one { right: 175px; top: 14px; }
+.hero-art-dot.dot-two { right: 4px; top: 74px; width: 10px; height: 10px; }
+.hero-art-dot.dot-three { right: 90px; bottom: 6px; width: 8px; height: 8px; }
+
+/* --------------------------------------------------------------------------
+   New bill card
+   -------------------------------------------------------------------------- */
+
+.home-bill-card {
+  width: 100%;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  border-radius: 17px !important;
+  box-shadow: 0 8px 25px rgba(15,23,42,.07) !important;
+  overflow: hidden;
+}
+
+.home-bill-card .customer-form {
+  padding: 17px 22px !important;
+  background: #fff !important;
+}
+
+.home-bill-card .card-title-row {
+  gap: 12px;
+}
+
+.home-bill-card .card-title-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: #eaf2ff;
+}
+
+.home-bill-card .new-bill-title {
+  font-size: 1.14rem;
+  color: #0f245c;
+}
+
+.home-bill-card .helper-text {
+  font-size: .76rem;
+}
+
+.home-bill-card .card-body {
+  padding: 24px 36px 28px !important;
+}
+
+.customer-select-row {
+  margin-bottom: 19px !important;
+}
+
+.customer-select-row > div {
+  width: min(100%, 500px);
+}
+
+.home-bill-card .form-label {
+  margin-bottom: 7px;
+  font-size: .84rem;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.home-bill-card .css-13cymwt-control,
+.home-bill-card .css-t3ipsp-control {
+  min-height: 45px;
+  border-radius: 10px;
+}
+
+/* Meter label and six-digit display */
+.home-bill-card .meter-reading-label {
+  margin-bottom: 9px;
+  font-size: .86rem;
+  font-weight: 600;
+}
+
+.home-bill-card .input-box {
+  gap: 10px;
+  width: 100%;
+  max-width: 825px;
+  margin: 0 auto;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  align-items: center;
+}
+
+.home-bill-card .input-box .textbox {
+  flex: 1 1 0;
+  width: auto !important;
+  max-width: 64px;
+  height: 58px !important;
+  min-width: 0;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  background: #f8fafc;
+  font-size: 25px !important;
+  color: #0f172a;
+  box-shadow: 0 2px 6px rgba(15,23,42,.06);
+  transition: border-color .16s ease, background-color .16s ease,
+    box-shadow .16s ease, transform .16s ease;
+}
+
+.home-bill-card .input-box .textbox:hover {
+  border-color: #bfdbfe !important;
+}
+
+.home-bill-card .input-box .textbox.otp-filled {
+  border-color: #93c5fd !important;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.home-bill-card .input-box .textbox.red-input-box {
+  background: #fff5f5;
+  color: #dc2626;
+  border-color: #fecaca !important;
+}
+
+.home-bill-card .input-box .textbox.red-input-box.otp-filled {
+  border-color: #fca5a5 !important;
+  background: #fee2e2;
+}
+
+.home-bill-card .input-box .textbox:focus {
+  position: relative;
+  z-index: 2;
+  color: #2563eb !important;
+  background: #fff;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, .16) !important;
+  transform: translateY(-2px) scale(1.05);
+}
+
+.home-bill-card .input-box .textbox.red-input-box:focus {
+  color: #dc2626 !important;
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, .14) !important;
+}
+
+.home-bill-card .otp-separator {
+  flex: 0 0 auto;
+  font-size: 30px;
+  font-weight: 800;
+  color: #94a3b8;
+  line-height: 58px;
+  user-select: none;
+}
+
+@media (max-width: 600px) {
+  .home-bill-card .input-box {
+    gap: 6px;
+  }
+
+  .home-bill-card .input-box .textbox {
+    max-width: 46px;
+    height: 52px !important;
+    font-size: 20px !important;
+    border-radius: 12px !important;
+  }
+
+  .home-bill-card .otp-separator {
+    font-size: 24px;
+    line-height: 52px;
+  }
+}
+
+@media (max-width: 400px) {
+  .home-bill-card .input-box {
+    gap: 4px;
+  }
+
+  .home-bill-card .input-box .textbox {
+    max-width: 38px;
+    height: 46px !important;
+    font-size: 17px !important;
+  }
+
+  .home-bill-card .otp-separator {
+    font-size: 20px;
+    line-height: 46px;
+  }
+}
+
+/* Summary section */
+.home-bill-card hr {
+  border-color: #e8edf5;
+  opacity: 1;
+}
+
+.home-bill-card > .card-body > .section-title {
+  color: #0f245c;
+  font-size: .95rem;
+  font-weight: 700;
+}
+
+.home-bill-card .summary-cards {
+  gap: 13px;
+}
+
+.home-bill-card .summary-card {
+  min-height: 78px;
+  padding: 13px 15px;
+  border-radius: 13px;
+  box-shadow: 0 3px 12px rgba(15,23,42,.045);
+}
+
+.home-bill-card .summary-card-icon {
+  width: 43px;
+  height: 43px;
+  min-width: 43px;
+  border-radius: 12px;
+}
+
+.home-bill-card .summary-card-value {
+  color: #1747d1;
+  font-size: 1.25rem;
+}
+
+.home-bill-card .summary-card.total {
+  border: 1px solid #ccebd8;
+  background: linear-gradient(180deg,#fff,#f7fff9);
+}
+
+.home-bill-card .summary-card.total .summary-card-value {
+  color: #176c3d;
+  font-size: 1.35rem;
+}
+
+.home-bill-card .btn-preview-bill {
+  width: min(100%, 350px);
+  border-radius: 10px !important;
+  min-height: 45px;
+}
+
+/* --------------------------------------------------------------------------
+   General pages
+   -------------------------------------------------------------------------- */
+
+.app-shell .page-title {
+  color: #10245e;
+  letter-spacing: -.025em;
+}
+
+.app-shell .page-subtitle {
+  color: #64748b;
+}
+
+.app-shell .card {
+  box-shadow: 0 5px 20px rgba(15,23,42,.055) !important;
+}
+
+.app-shell .customer-form {
+  background: linear-gradient(180deg,#ffffff,#fbfdff) !important;
+}
+
+.app-shell .table thead th {
+  background: #eef4ff;
+  color: #17306f;
+}
+
+.app-shell .table tbody tr:hover {
+  background: #f6f9ff;
+}
+
+.app-shell .pagination .active .page-link {
+  background: #2563eb !important;
+}
+
+/* Authentication cards get stronger blue branding without changing their fields. */
+.auth-page-bg {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(59,130,246,.16), transparent 28%),
+    radial-gradient(circle at 85% 80%, rgba(124,58,237,.09), transparent 28%),
+    #f1f5f9;
+}
+
+.auth-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding-top: 2.5rem;
+  padding-bottom: 2.5rem;
+}
+
+.auth-hero {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto 1.5rem;
+  min-height: 155px;
+  padding: 20px;
+
+  .page-hero-copy {
+    justify-content: center;
+  }
+  .app-shell {
+    min-height: calc(100vh - 64px);
+    margin-left: 0;
+  }
+
+  .app-container {
+    width: 100%;
+    max-width: none;
+    padding: 18px 14px 30px;
+  }
+
+  .page-hero {
+    min-height: 155px;
+    padding: 23px 20px;
+  }
+
+  .page-hero-art {
+    right: -70px;
+    opacity: .7;
+    transform: scale(.8);
+    transform-origin: right center;
+  }
+
+  img{
+    width: 200px;
+    height: auto;
+  }
+
+  .page-hero-copy {
+    max-width: 70%;
+  }
+
+  .page-hero-title {
+    font-size: 1.1rem;
+  }
+}
+
+.auth-card {
+  border-top: 4px solid #2563eb;
+  box-shadow: 0 18px 45px rgba(15,23,42,.1);
+}
+
+/* --------------------------------------------------------------------------
+   Mobile
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 991.98px) {
+  .app-shell {
+    padding-top: 64px;
+    min-height: calc(100vh - 64px);
+    margin-left: 0;
+  }
+
+  .app-container {
+    width: 100%;
+    max-width: none;
+    padding: 18px 14px 30px;
+  }
+
+  .page-hero {
+    min-height: 155px;
+    padding: 23px 20px;
+  }
+
+  .page-hero-art {
+    right: -10px;
+    opacity: .7;
+    transform: scale(.8);
+    transform-origin: right center;
+  }
+
+  .page-hero-copy {
+    max-width: 70%;
+  }
+
+  .page-hero-title {
+    font-size: 1.55rem;
+  }
+
+  .home-bill-card {
+    max-width: none !important;
+  }
+
+  .home-bill-card .card-body {
+    padding: 21px 17px 23px !important;
+  }
+
+  .customer-select-row > div {
+    width: 100%;
+  }
+
+  .home-bill-card .input-box .textbox {
+    height: 54px !important;
+    font-size: 22px !important;
+  }
+}
+
+
+.page-container {
+  .app-container {
+    padding: 14px 10px 24px;
+  }
+
+  .page-hero {
+    min-height: 155px;
+    padding: 23px 20px;
+  }
+
+  .page-hero-art {
+    right: -10px;
+    opacity: .7;
+    transform: scale(.8);
+    transform-origin: right center;
+  }
+
+  .page-hero-copy {
+    max-width: 70%;
+  }
+
+  .page-hero-title {
+    font-size: 1.55rem;
+  }
+
+}
+@media (max-width: 575.98px) {
+  .app-container {
+    padding: 14px 10px 24px;
+  }
+
+  .page-hero {
+    min-height: 142px;
+    padding: 19px 16px;
+    border-radius: 14px;
+  }
+
+  .page-hero-copy {
+    max-width: 100%;
+    gap: 11px;
+  }
+
+  .page-hero-icon {
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+    border-radius: 12px;
+  }
+
+  .page-hero-title {
+    font-size: 1.32rem;
+  }
+
+  .page-hero-subtitle {
+    font-size: .78rem;
+  }
+
+  .page-hero-art {
+    opacity: .26;
+    right: 0;
+    top: -2px;
+  }
+
+  .home-bill-card .customer-form {
+    padding: 14px 15px !important;
+  }
+
+  .home-bill-card .card-body {
+    padding: 18px 13px 20px !important;
+  }
+
+  .home-bill-card .input-box {
+    border-radius: 9px;
+  }
+
+  .home-bill-card .input-box .textbox {
+    height: 50px !important;
+    font-size: 19px !important;
+  }
+
+  .home-bill-card .summary-card {
+    min-height: 70px;
+  }
+
+  .home-bill-card .summary-card-value {
+    font-size: 1.12rem;
+  }
+
+  .home-bill-card .summary-card.total .summary-card-value {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 370px) {
+  .app-navbar-title {
+    max-width: 155px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .home-bill-card .input-box .textbox {
+    font-size: 17px !important;
+  }
 }

@@ -4,6 +4,7 @@ import { Form, Button, Badge, Col, Row } from "react-bootstrap";
 import axios from "axios";
 import { getMaxDate, formatDateForInput } from '../../Utilities/Utils.js';
 import { toast } from "react-toastify";
+import { IconCheck, IconX } from "@tabler/icons-react";
 
 const BillForm = ({
   fetchBillByCustomerId,
@@ -233,7 +234,7 @@ const BillForm = ({
           />
         </Col>
       </Form.Group>
-      <div className="m-2 center-item">
+      <div className="m-2 center-item flex-wrap gap-2">
         <Button variant="dark" style={{ marginRight: "10px" }}>
           Total Price <Badge bg="secondary">{form.total_price}</Badge>
         </Button>
@@ -243,6 +244,7 @@ const BillForm = ({
           type="submit"
           disabled={form.total_price <= 0}
         >
+          <IconCheck size={18} stroke={1.75} className="me-2" />
           {billData?._id ? "Update" : "Add"} Bill
         </Button>
         <Button
@@ -250,7 +252,8 @@ const BillForm = ({
           type="button"
           onClick={handleCloseModal}
         >
-          close
+          <IconX size={18} stroke={1.75} className="me-2" />
+          Close
         </Button>
       </div>
     </Form>

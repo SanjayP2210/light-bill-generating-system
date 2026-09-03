@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 360" fill="none">
+  <defs>
+    <radialGradient id="mtGlow" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#bfdbfe" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#bfdbfe" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mtBlob" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#dbeafe"/>
+      <stop offset="100%" stop-color="#93c5fd"/>
+    </linearGradient>
+    <linearGradient id="mtCard" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f4f8ff"/>
+    </linearGradient>
+    <linearGradient id="mtBadge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="mtLeaf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#1e40af"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="280" cy="180" r="165" fill="url(#mtGlow)"/>
+  <path d="M120 240c-40-60-10-150 80-170s190 10 210 90 -30 150-120 160 -140-10-170-80z" fill="url(#mtBlob)" opacity="0.55"/>
+
+  <path d="M95 300c10-70 55-115 120-125-15 65-55 105-120 125z" fill="url(#mtLeaf)" opacity="0.85"/>
+  <path d="M120 305c25-55 70-85 130-88-25 50-70 78-130 88z" fill="url(#mtLeaf)" opacity="0.65"/>
+
+  <circle cx="90" cy="90" r="16" fill="#3b82f6" opacity="0.8"/>
+  <circle cx="470" cy="110" r="12" fill="#2563eb" opacity="0.7"/>
+  <circle cx="480" cy="230" r="9" fill="#60a5fa" opacity="0.7"/>
+  <circle cx="130" cy="60" r="6" fill="#60a5fa" opacity="0.6"/>
+
+  <g fill="#93c5fd" opacity="0.6">
+    <circle cx="60" cy="200" r="3"/><circle cx="78" cy="200" r="3"/><circle cx="96" cy="200" r="3"/>
+    <circle cx="60" cy="218" r="3"/><circle cx="78" cy="218" r="3"/><circle cx="96" cy="218" r="3"/>
+    <circle cx="60" cy="236" r="3"/><circle cx="78" cy="236" r="3"/><circle cx="96" cy="236" r="3"/>
+  </g>
+
+  <!-- checklist card -->
+  <g transform="translate(185,100)">
+    <rect x="0" y="0" width="200" height="150" rx="20" fill="url(#mtCard)" stroke="#e2e8f0" stroke-width="1"/>
+    <rect x="24" y="24" width="18" height="18" rx="5" fill="#2563eb"/>
+    <path d="M28 33l4 4 8-9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <rect x="52" y="27" width="120" height="10" rx="5" fill="#c7dcff"/>
+
+    <rect x="24" y="62" width="18" height="18" rx="5" fill="#2563eb"/>
+    <path d="M28 71l4 4 8-9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <rect x="52" y="65" width="95" height="10" rx="5" fill="#dbeafe"/>
+
+    <rect x="24" y="100" width="18" height="18" rx="5" stroke="#93c5fd" stroke-width="2" fill="none"/>
+    <rect x="52" y="103" width="110" height="10" rx="5" fill="#e5efff"/>
+  </g>
+
+  <!-- badge -->
+  <g transform="translate(365,120)">
+    <circle cx="0" cy="0" r="34" fill="url(#mtBadge)"/>
+    <path d="M-13 3l6 7 15-17" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>

@@ -84,7 +84,14 @@ const BillTable = ({
                     <td>{extra_unit}</td>
                     <td>{used_unit}</td>
                     <td>{unit_per_rate}</td>
-                    <td>{total_price}</td>
+                    <td
+                      style={{
+                        fontWeight: 700,
+                        color: "var(--color-primary)",
+                      }}
+                    >
+                      {total_price}
+                    </td>
                     <th>{comments}</th>
                     {customer_id?.name && (
                       <td className="action-buttons">
@@ -92,33 +99,36 @@ const BillTable = ({
                           variant="outline-primary"
                           className="btn"
                           type="button"
+                          aria-label="Edit bill"
                           onClick={(e) => {
                             e.preventDefault();
                             setBillData(bill);
                           }}
                         >
-                          <IconEdit />
+                          <IconEdit size={18} stroke={1.75} />
                         </Button>
                         <Button
                           variant="outline-success"
                           type="button"
+                          aria-label="Download bill"
                           onClick={(e) => {
                             e.preventDefault();
                             setBillData(bill);
                             generatePDFById(bill?._id);
                           }}
                         >
-                          <IconDownload />
+                          <IconDownload size={18} stroke={1.75} />
                         </Button>
                         <Button
                           variant="outline-danger"
                           type="button"
+                          aria-label="Delete bill"
                           onClick={(e) => {
                             e.preventDefault();
                             deleteBill(bill?._id);
                           }}
                         >
-                          <IconTrash />
+                          <IconTrash size={18} stroke={1.75} />
                         </Button>
                       </td>
                     )}
@@ -132,7 +142,7 @@ const BillTable = ({
               <tr>
                 <td
                   colSpan="11"
-                  style={{ textAlign: "center", color: "black" }}
+                  style={{ textAlign: "center", color: "var(--color-text-muted)" }}
                 >
                   <p>
                     <b>No Data Found</b>

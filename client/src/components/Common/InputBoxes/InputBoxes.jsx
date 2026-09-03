@@ -2,12 +2,19 @@
 // InputBoxes.js
 import { useEffect, useMemo, useRef, useState } from "react";
 import "./InputBoxes.css"; // Ensure you create this CSS file for styling
-import { Button, Col } from "react-bootstrap";
+import { Button, Card, Col, Row } from "react-bootstrap";
 import CustomerSelector from "../../CustomerSelector";
 import axios from "axios";
 import TableModal from "../../TableModal/TableModal";
 import NewBillTableView from "../../Bill/NewBillTableView";
-import { IconPlus } from "@tabler/icons-react";
+import {
+  IconCash,
+  IconEye,
+  IconFileInvoice,
+  IconGauge,
+  IconPlus,
+  IconReceipt2,
+} from "@tabler/icons-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
@@ -180,7 +187,6 @@ const InputBoxes = ({ setShowLoader }) => {
       const res = await axios.get(`${apiUrl}/customers`);
       if (res?.data?.isError) {
         toast.error("Error fetching customers");
-        // navigate("/customer");
       } else {
         const data = res?.data?.data;
         setCustomers(data);
@@ -260,91 +266,127 @@ const InputBoxes = ({ setShowLoader }) => {
     </>
   );
 
+  const showTotal = form?.prev_unit != null && newValue?.length > 6;
+
   return (
     <>
-      <Col className="center-item mt-5" sm={12}>
-        <div>
-          <div className="center-item mb-3">
-            <h2 className="new-bill-title">Add Your New Bill</h2>
+      <Card className="mx-auto home-bill-card">
+        <Card.Header className="customer-form">
+          <div className="card-title-row">
+            <div className="card-title-icon">
+              <IconFileInvoice size={20} stroke={1.75} />
+            </div>
+            <div className="card-title-text">
+              <h2 className="section-title new-bill-title">
+                Add Your New Bill
+              </h2>
+              <span className="helper-text">
+                Create a new electricity bill
+              </span>
+            </div>
           </div>
-          <Col
-            className="text-center mb-5"
-            md={{ span: 8, offset: 2 }}
-            sm={{ span: 8, offset: 2 }}
-          >
-            <CustomerSelector
-              customers={customers || []}
-              setCustomerId={setCustomerId}
-              customer_id={customer_id}
-            />
-          </Col>
+        </Card.Header>
+        <Card.Body className="p-3 p-md-4">
+          <Row className="justify-content-center mb-4 customer-select-row">
+            <Col md={10} sm={12}>
+              <CustomerSelector
+                customers={customers || []}
+                setCustomerId={setCustomerId}
+                customer_id={customer_id}
+              />
+            </Col>
+          </Row>
           <Col md={12} sm={12}>
+            <span className="meter-reading-label text-center">
+              Meter Reading
+            </span>
             <div className="input-group input-group-sm input-box">
               {Array.from({ length: 6 }).map((_, index) => {
                 const isLast = index === 5;
                 return (
-                  <>
+                  <div className="otp-box-wrap" key={index}>
+                    {isLast && (
+                      <span className="otp-separator" aria-hidden="true">
+                        .
+                      </span>
+                    )}
                     <input
-                      key={index}
                       type="text"
-                      className={`textbox ${isLast ? "red-input-box" : ""}`}
+                      className={`textbox ${isLast ? "red-input-box" : ""} ${
+                        values[index] ? "otp-filled" : ""
+                      }`}
                       maxLength="1"
                       value={values[index]}
                       dir="rtl"
                       id={`meter-input-${index}`}
+                      aria-label={`Meter digit ${index + 1}`}
                       ref={(el) => (textboxesRef.current[index] = el)}
                       onInput={(e) => handleInput(index, e)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
                     />
-                  </>
+                  </div>
                 );
               })}
             </div>
           </Col>
 
-          {customer_id && form?.prev_unit != null ? (
+          {customer_id && form?.prev_unit != null && (
             <>
-              <div className="center-item mt-3">
-                <h4 className="new-bill-title">
-                  Previous Bill :-{" "}
-                  <span style={{ color: "blue" }}> {form?.prev_unit}</span>
-                </h4>
-              </div>
-              <div className="center-item mt-3">
-                <h4 className="new-bill-title">
-                  Unit Rate :-{" "}
-                  <span style={{ color: "blue" }}>
-                    {" "}
-                    {customer_id?.default_unit_per_rate}
-                  </span>
-                </h4>
-              </div>
-              {(form?.prev_unit != null && newValue?.length > 6) && (
-                <>
-                  <div className="center-item mt-3">
-                    <h4 className="new-bill-title">
-                      Total Bill is :-{" "}
-                      <span style={{ color: "blue" }}>{totalValue || 0}</span>
-                    </h4>
+              <hr className="my-4" />
+              <p className="section-title mb-3">Bill Summary</p>
+              <div className="summary-cards">
+                <div className="summary-card">
+                  <div className="summary-card-icon">
+                    <IconReceipt2 size={22} stroke={1.75} />
                   </div>
-                  <br />
-                  <div className="center-item mt-3">
-                    <Button
-                      variant="outline-dark"
-                      type="button"
-                      onClick={handleShowModal}
-                    >
-                      Preview Bill
-                    </Button>
+                  <div>
+                    <p className="summary-card-label">Previous Bill</p>
+                    <p className="summary-card-value">{form?.prev_unit}</p>
                   </div>
-                </>
+                </div>
+                <div className="summary-card accent">
+                  <div className="summary-card-icon">
+                    <IconGauge size={22} stroke={1.75} />
+                  </div>
+                  <div>
+                    <p className="summary-card-label">Unit Rate</p>
+                    <p className="summary-card-value">
+                      {customer_id?.default_unit_per_rate}
+                    </p>
+                  </div>
+                </div>
+                {showTotal && (
+                  <div className="summary-card total">
+                    <div className="summary-card-icon">
+                      <IconCash size={22} stroke={1.75} />
+                    </div>
+                    <div>
+                      <p className="summary-card-label">Total Bill</p>
+                      <p className="summary-card-value">
+                        {totalValue || 0}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {showTotal && (
+                <div className="center-item mt-4">
+                  <Button
+                    variant="dark"
+                    type="button"
+                    className="btn-preview-bill px-4"
+                    onClick={handleShowModal}
+                  >
+                    <IconEye size={18} stroke={1.75} className="me-2" />
+                    Preview Bill
+                  </Button>
+                </div>
               )}
             </>
-          ) : (
-            <></>
           )}
-        </div>
-      </Col>
+        </Card.Body>
+      </Card>
       <TableModal
         isClickOnPdfBtn={isClickOnPdfBtn}
         setIsClickOnPdfBtn={setIsClickOnPdfBtn}

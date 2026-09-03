@@ -88,14 +88,12 @@ const NewBillTableView = ({
           style={{
             borderCollapse: "collapse",
             width: "100%",
-            fontFamily: "circular",
-            border: "2px solid",
           }}
         >
-          <thead className="thead-dark">
+          <thead>
             <tr>
-              <th className="table-dark text-center">Date</th>
-              <th className="table-dark text-center">{titleDate ||  todayDate}</th>
+              <th className="text-center">Date</th>
+              <th className="text-center">{titleDate ||  todayDate}</th>
             </tr>
           </thead>
           <tbody>{generateTableRows(tableValue)}</tbody>
@@ -107,8 +105,10 @@ const NewBillTableView = ({
           }}
         >
           <h3 className="new-bill-title mt-4">
-            Total Bill:-{" "}
-            <span style={{ color: "blue" }}>{tableValue.total_price || 0}</span>
+            Total Bill :-{" "}
+            <span className="value-amount" style={{ color: "var(--color-primary)" }}>
+              {tableValue.total_price || 0}
+            </span>
           </h3>
         </div>
       </div>

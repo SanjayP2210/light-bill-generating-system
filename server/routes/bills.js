@@ -27,12 +27,12 @@ function convertToDate(dateStr) {
     }
 }
 
-const updateLastBillOfCustomer = async (customer_id) => {
+const updateLastBillOfCustomer = async (customer_id, user_id) => {
     try {
-        const lastBill = await Bill.findOne({ customer_id }).sort({ _id: -1 });
+        const lastBill = await Bill.findOne({ customer_id, user_id }).sort({ _id: -1 });
         const last_bill_unit = lastBill?.current_unit || 0;
-        const updatedCustomer = await Customer.findByIdAndUpdate(
-            customer_id,
+        const updatedCustomer = await Customer.findOneAndUpdate(
+            { _id: customer_id, user_id },
             { last_bill_unit: last_bill_unit },
             { new: true }
         );
@@ -43,17 +43,17 @@ const updateLastBillOfCustomer = async (customer_id) => {
     }
 };
 
-// Get all bills
+// Get all bills belonging to the authenticated user
 router.get('/', async (req, res) => {
     try {
-        const bills = await Bill.find().populate('customer_id', 'name bill_no').sort({ date: -1 }).exec();
+        const bills = await Bill.find({ user_id: req.user._id }).populate('customer_id', 'name bill_no').sort({ date: -1 }).exec();
         res.json(bills);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
-// Add a new bill
+// Add a new bill (customer ownership is verified before creating)
 router.post('/', async (req, res) => {
     const {
         customer_id,
@@ -66,21 +66,32 @@ router.post('/', async (req, res) => {
         comments,
         date
     } = req.body;
-    const bill = new Bill({
-        customer_id,
-        unit_per_rate,
-        current_unit: current_unit ? parseFloat(current_unit).toFixed(2) : current_unit,
-        prev_unit: prev_unit ? parseFloat(prev_unit).toFixed(2) : prev_unit,
-        total_price: total_price ? parseFloat(total_price).toFixed(2) : total_price,
-        used_unit: used_unit ? parseFloat(used_unit).toFixed(2) : used_unit,
-        extra_unit: extra_unit ? parseFloat(extra_unit).toFixed(2) : extra_unit,
-        comments,
-        date: date ? convertToDate(date) : date,
-    });
 
     try {
+        const customer = await Customer.findOne({ _id: customer_id, user_id: req.user._id });
+        if (!customer) {
+            return res.status(403).json({
+                message: 'Selected customer was not found in your account',
+                data: null,
+                isError: true
+            });
+        }
+
+        const bill = new Bill({
+            user_id: req.user._id,
+            customer_id,
+            unit_per_rate,
+            current_unit: current_unit ? parseFloat(current_unit).toFixed(2) : current_unit,
+            prev_unit: prev_unit ? parseFloat(prev_unit).toFixed(2) : prev_unit,
+            total_price: total_price ? parseFloat(total_price).toFixed(2) : total_price,
+            used_unit: used_unit ? parseFloat(used_unit).toFixed(2) : used_unit,
+            extra_unit: extra_unit ? parseFloat(extra_unit).toFixed(2) : extra_unit,
+            comments,
+            date: date ? convertToDate(date) : date,
+        });
+
         const savedBill = await bill.save();
-        const updatedCustomer = await updateLastBillOfCustomer(customer_id);
+        const updatedCustomer = await updateLastBillOfCustomer(customer_id, req.user._id);
         if (updatedCustomer) {
             res.json({
                 message: 'New Litebill saved and Customer updated successfully!',
@@ -103,7 +114,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Update an existing bill
+// Update an existing bill (only if it belongs to the authenticated user)
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const {
@@ -118,7 +129,7 @@ router.put('/:id', async (req, res) => {
     } = req.body;
 
     try {
-        const bill = await Bill.findById(id);
+        const bill = await Bill.findOne({ _id: id, user_id: req.user._id });
         if (!bill) {
             return res.status(404).json({ message: 'Bill not found' });
         }
@@ -133,7 +144,7 @@ router.put('/:id', async (req, res) => {
         bill.date = date ? convertToDate(date) : bill.date;
 
         const updatedBill = await bill.save();
-        const updatedCustomer = await updateLastBillOfCustomer(bill.customer_id);
+        const updatedCustomer = await updateLastBillOfCustomer(bill.customer_id, req.user._id);
         if (updatedCustomer) {
             res.json({
                 message: 'Bill updated and Customer updated successfully!',
@@ -156,16 +167,17 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// Get bills by customer ID
+// Get bills by customer ID (scoped to the authenticated user)
 router.get('/get-bill-by-customer-id/', async (req, res) => {
     try {
         const { page = 1, limit = 10, sortBy = 'date', sortOrder = 'asc', customer_id = "" } = req.query;
 
         const sortQuery = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
-        const bills = await Bill.find({ customer_id }).populate('customer_id', 'name bill_no')
+        const filter = { customer_id, user_id: req.user._id };
+        const bills = await Bill.find(filter).populate('customer_id', 'name bill_no')
             .sort(sortQuery).limit(limit * 1)
             .skip((page - 1) * limit).exec();
-        const count = await Bill.countDocuments({ customer_id });
+        const count = await Bill.countDocuments(filter);
         res.json({
             data: bills,
             message: 'Bills retrieved successfully',
@@ -215,10 +227,10 @@ const generateTableForPDF = async (bills, filePath) => {
     doc.end();
 };
 
-// Generate PDF for all bills
+// Generate PDF for all bills belonging to the authenticated user
 router.get('/generate-pdf', async (req, res) => {
     try {
-        const bills = await Bill.find().populate('customer_id');
+        const bills = await Bill.find({ user_id: req.user._id }).populate('customer_id');
         const filePath = path.join(__dirname, '../files/bills.pdf');
 
         await generateTableForPDF(bills, filePath);
@@ -237,11 +249,11 @@ router.get('/generate-pdf', async (req, res) => {
     }
 });
 
-// Generate PDF for a specific bill by ID
+// Generate PDF for a specific bill by ID (only if it belongs to the authenticated user)
 router.get('/generate-pdf-by-lite-bill/:id', async (req, res) => {
     try {
         const id = req.params.id;
-        const bills = await Bill.find({ _id: id }).populate('customer_id');
+        const bills = await Bill.find({ _id: id, user_id: req.user._id }).populate('customer_id');
         if (bills.length === 0) {
             return res.status(404).json({ message: 'No bills found with the provided ID.' });
         }
@@ -264,11 +276,11 @@ router.get('/generate-pdf-by-lite-bill/:id', async (req, res) => {
     }
 });
 
-// Get the last bill for a customer
+// Get the last bill for a customer (scoped to the authenticated user)
 router.get('/get-last-bill/:customer_id', async (req, res) => {
     try {
         const customer_id = req.params.customer_id;
-        const lastBill = await Bill.findOne({ customer_id }).sort({ _id: -1 });
+        const lastBill = await Bill.findOne({ customer_id, user_id: req.user._id }).sort({ _id: -1 });
         if (lastBill) {
             res.json({
                 data: lastBill,
@@ -308,7 +320,7 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
     const workbook = xlsx.readFile(filePath);
 
     const sheetNames = workbook.SheetNames;
-    const bills = [];
+    const parsedRows = [];
 
     sheetNames.forEach(sheetName => {
         const worksheet = workbook.Sheets[sheetName];
@@ -328,7 +340,7 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
                 date
             ] = row;
 
-            bills.push({
+            parsedRows.push({
                 customer_id,
                 current_unit,
                 prev_unit,
@@ -343,6 +355,19 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
     });
 
     try {
+        // Only rows whose customer actually belongs to the authenticated user are imported —
+        // uploaded data can never assign bills to another user's customer.
+        const requestedCustomerIds = [...new Set(parsedRows.map((row) => String(row.customer_id)))];
+        const ownedCustomers = await Customer.find({
+            _id: { $in: requestedCustomerIds },
+            user_id: req.user._id,
+        }).select('_id');
+        const ownedIds = new Set(ownedCustomers.map((c) => String(c._id)));
+
+        const bills = parsedRows
+            .filter((row) => ownedIds.has(String(row.customer_id)))
+            .map((row) => ({ ...row, user_id: req.user._id }));
+
         const savedBills = await Bill.insertMany(bills);
         res.json({ message: 'Excel file data inserted successfully!', data: savedBills });
     } catch (err) {
@@ -354,15 +379,15 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
     }
 });
 
-// Delete a Bill
+// Delete a Bill (only if it belongs to the authenticated user)
 router.delete('/:id', async (req, res) => {
     try {
         const id = req.params.id;
-        const deletedBill = await Bill.findByIdAndDelete(id);
+        const deletedBill = await Bill.findOneAndDelete({ _id: id, user_id: req.user._id });
         if (!deletedBill) {
             return res.status(404).json({ message: 'Bill not found' });
         }
-        const updtedCustomer = await updateLastBillOfCustomer(deletedBill.customer_id);
+        const updtedCustomer = await updateLastBillOfCustomer(deletedBill.customer_id, req.user._id);
         if (updtedCustomer) {
             res.json({
                 message: 'Bill Deleted Successfully',

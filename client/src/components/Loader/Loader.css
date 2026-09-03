@@ -6,7 +6,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(248, 250, 252, 0.85);
+    backdrop-filter: blur(1px);
     z-index: 9899999;
     cursor: pointer;
 
@@ -26,7 +27,7 @@
     &::after {
         content: '';
         position: absolute;
-        border: 3px solid white;
+        border: 3px solid #2563eb;
         border-radius: 50%;
 
     }
@@ -58,7 +59,7 @@
     &::after {
         content: '';
         position: absolute;
-        border: 3px solid white;
+        border: 3px solid #2563eb;
         border-radius: 50%;
 
     }
@@ -87,7 +88,7 @@
     &::after {
         content: '';
         position: absolute;
-        border: 3px solid white;
+        border: 3px solid #2563eb;
         border-radius: 50%;
 
     }
