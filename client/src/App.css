@@ -748,7 +748,7 @@ h4 {
 .auth-card {
   width: 100%;
   max-width: 550px;
-  min-width: 550px;
+  min-width: 330px;
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -1401,7 +1401,7 @@ body {
 
   .page-hero-art {
     right: -70px;
-    opacity: .7;
+    opacity: .5;
     transform: scale(.8);
     transform-origin: right center;
   }
@@ -1412,7 +1412,7 @@ body {
   }
 
   .page-hero-copy {
-    max-width: 70%;
+    /* max-width: 70%; */
   }
 
   .page-hero-title {
