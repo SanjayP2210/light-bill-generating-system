@@ -29,7 +29,18 @@ if (process.env.NODE_ENV !== "production") {
 // would block all users together.
 app.set('trust proxy', 1);
 
-app.use(helmet({ crossOriginResourcePolicy: false }));
+// The meter scanner runs Tesseract.js in the browser: it loads its worker and
+// WASM engine from jsDelivr and starts the worker from a blob: URL.
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      scriptSrc: ["'self'", "'wasm-unsafe-eval'", 'https://cdn.jsdelivr.net'],
+      workerSrc: ["'self'", 'blob:'],
+      connectSrc: ["'self'", 'https://cdn.jsdelivr.net'],
+    },
+  },
+}));
 
 // Known default origins (local dev + this app's Vercel domain) plus any
 // extra origins supplied via CLIENT_URL (comma-separated — useful for a

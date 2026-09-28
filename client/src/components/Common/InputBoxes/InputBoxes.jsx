@@ -8,15 +8,20 @@ import axios from "axios";
 import TableModal from "../../TableModal/TableModal";
 import NewBillTableView from "../../Bill/NewBillTableView";
 import {
+  IconCamera,
   IconCash,
   IconEye,
   IconFileInvoice,
   IconGauge,
   IconPlus,
   IconReceipt2,
+  IconUpload,
 } from "@tabler/icons-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { resizeImage } from "../../../Utilities/imageUtils";
+import { preloadMeterReader, readMeterDigits } from "../../../Utilities/meterOcr";
+import MeterCamera from "../../MeterCamera/MeterCamera";
 
 const InputBoxes = ({ setShowLoader }) => {
   const defaultFormValue = {
@@ -42,6 +47,9 @@ const InputBoxes = ({ setShowLoader }) => {
   const [isNewBillGenerated, setIsNewBillGenerated] = useState(false);
   const apiUrl = import.meta.env.VITE_APP_API_URL;
   const [isClickOnPdfBtn, setIsClickOnPdfBtn] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const uploadInputRef = useRef(null);
+  const [showCamera, setShowCamera] = useState(false);
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -149,6 +157,92 @@ const InputBoxes = ({ setShowLoader }) => {
         setNewValue(numberWithDecimal);
       }
     }
+  };
+
+  // Fills all 6 boxes at once (e.g. from a scanned photo) and runs the same
+  // bill calculation that typing the last digit would. Returns an error
+  // message instead of filling when the reading can't be right.
+  const applyReading = (digits) => {
+    const reading = digits.slice(0, -1) + "." + digits.slice(-1);
+    const { prev_unit, unit_per_rate } = form;
+    if (prev_unit > parseFloat(reading)) {
+      return `Read ${reading}, which is lower than the previous unit ${prev_unit}`;
+    }
+    const calUnit = parseFloat(reading) - prev_unit;
+    setValues(digits.split(""));
+    setForm({
+      ...form,
+      used_unit: parseFloat(calUnit).toFixed(2),
+      prev_unit,
+      unit_per_rate,
+    });
+    setTotalValue(parseFloat(calUnit * unit_per_rate).toFixed(2));
+    setNewValue(reading);
+    return null;
+  };
+
+  // Shared by live capture and photo upload: reads the image in the browser
+  // and fills the boxes with the detected reading. Resolves to
+  // { ok, reading, message } so each caller can report failures its own way.
+  const scanMeterImage = async (imageBlob, { cropped = false } = {}) => {
+    try {
+      setIsScanning(true);
+      const image = await resizeImage(imageBlob);
+      const result = await readMeterDigits(image, {
+        prevUnit: parseFloat(form?.prev_unit) || 0,
+        cropped,
+      });
+      if (!result.ok) return result;
+      const { digits, reading, confidence } = result;
+      const rejected = applyReading(digits);
+      if (rejected) return { ok: false, message: rejected };
+      if (confidence === "high") {
+        toast.success(`Meter reading ${reading} detected`);
+      } else {
+        toast.info(`Meter reading ${reading} detected — please verify the digits`);
+      }
+      return { ok: true, reading };
+    } catch (error) {
+      console.error("Error reading meter photo:", error);
+      return {
+        ok: false,
+        message: "Could not read the meter photo. Check your internet connection the first time you scan.",
+      };
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const ensureCustomerSelected = () => {
+    if (customer_id) return true;
+    toast.warn("Please select a customer first");
+    return false;
+  };
+
+  const handleOpenCamera = () => {
+    if (!ensureCustomerSelected()) return;
+    preloadMeterReader();
+    setShowCamera(true);
+  };
+
+  // The camera shows failures inline and retries by itself, so only close it
+  // once a reading has been filled in. Its frames are cropped to the guide box.
+  const handleCameraCapture = async (blob) => {
+    const result = await scanMeterImage(blob, { cropped: true });
+    if (result.ok) setTimeout(() => setShowCamera(false), 900);
+    return result;
+  };
+
+  const handleUploadPhoto = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow picking the same photo again
+    if (!file || !ensureCustomerSelected()) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
+      return;
+    }
+    const result = await scanMeterImage(file);
+    if (!result.ok) toast.error(result.message);
   };
 
   const handleKeyDown = (index, e) => {
@@ -328,6 +422,45 @@ const InputBoxes = ({ setShowLoader }) => {
                 );
               })}
             </div>
+            <div className="meter-scan-actions mt-3">
+              <input
+                ref={uploadInputRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleUploadPhoto}
+              />
+              {isScanning ? (
+                <Button variant="outline-dark" type="button" disabled>
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    aria-hidden="true"
+                  />
+                  Reading meter...
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    variant="dark"
+                    type="button"
+                    onClick={handleOpenCamera}
+                  >
+                    <IconCamera size={18} stroke={1.75} className="me-2" />
+                    Live Capture
+                  </Button>
+                  <Button
+                    variant="outline-dark"
+                    type="button"
+                    onClick={() =>
+                      ensureCustomerSelected() && uploadInputRef.current?.click()
+                    }
+                  >
+                    <IconUpload size={18} stroke={1.75} className="me-2" />
+                    Upload Photo
+                  </Button>
+                </>
+              )}
+            </div>
           </Col>
 
           {customer_id && form?.prev_unit != null && (
@@ -387,6 +520,11 @@ const InputBoxes = ({ setShowLoader }) => {
           )}
         </Card.Body>
       </Card>
+      <MeterCamera
+        show={showCamera}
+        onClose={() => setShowCamera(false)}
+        onCapture={handleCameraCapture}
+      />
       <TableModal
         isClickOnPdfBtn={isClickOnPdfBtn}
         setIsClickOnPdfBtn={setIsClickOnPdfBtn}

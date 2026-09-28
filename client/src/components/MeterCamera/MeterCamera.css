@@ -1,0 +1,61 @@
+.meter-camera-view {
+    position: relative;
+    background: #000;
+    aspect-ratio: 3 / 4;
+    max-height: 70vh;
+    overflow: hidden;
+}
+
+.meter-camera-view video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Only the area inside this box is read, so keep the digit window within it. */
+.meter-camera-guide {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    top: 38%;
+    height: 18%;
+    border: 2px dashed rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+}
+
+.meter-camera-hint {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 12px;
+    text-align: center;
+    color: #fff;
+    font-size: 0.85rem;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.meter-camera-error {
+    padding: 24px 16px;
+    margin: 0;
+    text-align: center;
+    color: var(--color-text, #0f172a);
+}
+
+.meter-scan-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.meter-camera-hint.is-error {
+    left: 12px;
+    right: 12px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(185, 28, 28, 0.85);
+    text-shadow: none;
+}
