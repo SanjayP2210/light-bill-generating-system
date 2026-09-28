@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 360" fill="none">
+  <defs>
+    <radialGradient id="umGlow" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#bfdbfe" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#bfdbfe" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="umBlob" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#dbeafe"/>
+      <stop offset="100%" stop-color="#93c5fd"/>
+    </linearGradient>
+    <linearGradient id="umCard" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f4f8ff"/>
+    </linearGradient>
+    <linearGradient id="umShield" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="umLeaf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#1e40af"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="280" cy="180" r="165" fill="url(#umGlow)"/>
+  <path d="M120 240c-40-60-10-150 80-170s190 10 210 90 -30 150-120 160 -140-10-170-80z" fill="url(#umBlob)" opacity="0.55"/>
+
+  <!-- leaves -->
+  <path d="M95 300c10-70 55-115 120-125-15 65-55 105-120 125z" fill="url(#umLeaf)" opacity="0.85"/>
+  <path d="M120 305c25-55 70-85 130-88-25 50-70 78-130 88z" fill="url(#umLeaf)" opacity="0.65"/>
+
+  <!-- floating dots -->
+  <circle cx="90" cy="90" r="16" fill="#3b82f6" opacity="0.8"/>
+  <circle cx="470" cy="110" r="12" fill="#2563eb" opacity="0.7"/>
+  <circle cx="480" cy="230" r="9" fill="#60a5fa" opacity="0.7"/>
+  <circle cx="130" cy="60" r="6" fill="#60a5fa" opacity="0.6"/>
+
+  <!-- dotted grid -->
+  <g fill="#93c5fd" opacity="0.6">
+    <circle cx="60" cy="200" r="3"/><circle cx="78" cy="200" r="3"/><circle cx="96" cy="200" r="3"/>
+    <circle cx="60" cy="218" r="3"/><circle cx="78" cy="218" r="3"/><circle cx="96" cy="218" r="3"/>
+    <circle cx="60" cy="236" r="3"/><circle cx="78" cy="236" r="3"/><circle cx="96" cy="236" r="3"/>
+  </g>
+
+  <!-- id card -->
+  <g transform="translate(180,100)">
+    <rect x="0" y="0" width="210" height="150" rx="20" fill="url(#umCard)" stroke="#e2e8f0" stroke-width="1"/>
+    <circle cx="55" cy="55" r="26" fill="#dbeafe"/>
+    <circle cx="55" cy="47" r="11" fill="#60a5fa"/>
+    <path d="M33 75c0-14 10-22 22-22s22 8 22 22" fill="#60a5fa"/>
+    <rect x="100" y="35" width="90" height="9" rx="4.5" fill="#c7dcff"/>
+    <rect x="100" y="53" width="65" height="7" rx="3.5" fill="#dbeafe"/>
+    <rect x="30" y="112" width="150" height="9" rx="4.5" fill="#dbeafe"/>
+    <rect x="30" y="128" width="100" height="7" rx="3.5" fill="#e5efff"/>
+  </g>
+
+  <!-- shield badge -->
+  <g transform="translate(365,115)">
+    <path d="M0 -34c12 6 24 8 32 8v30c0 24-14 40-32 48-18-8-32-24-32-48v-30c8 0 20-2 32-8z" fill="url(#umShield)"/>
+    <path d="M-12 2l9 9 17-19" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>

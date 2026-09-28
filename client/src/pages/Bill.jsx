@@ -2,20 +2,29 @@
 import BillForm from "../components/Bill/BillForm";
 import BillTable from "../components/Bill/BillTable";
 import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import GeneratePDF from "../components/GeneratePDF/GeneratePDF";
-import { Container, Row, Col, Card, Modal } from "react-bootstrap";
+import GenerateExcel from "../components/GenerateExcel/GenerateExcel";
+import { Container, Row, Col, Card } from "react-bootstrap";
 import CustomerSelector from "../components/CustomerSelector";
+import TableModal from "../components/TableModal/TableModal";
+import NewBillTableView from "../components/Bill/NewBillTableView";
+import { formatDate, formatDateForTable } from "../Utilities/Utils";
+import { toast } from "react-toastify";
+import { IconFileText } from "@tabler/icons-react";
+import homeBannerImage from "../assets/home-screen-banner.png";
 
-const Bill = ({ showAlertBox, setShowLoader }) => {
+const Bill = ({ setShowLoader }) => {
   const [customers, setCustomers] = useState([]);
   const [bills, setBills] = useState([]);
   const [customer_id, setCustomerId] = useState(null);
-  const [prev_unit, setPrev_unit] = useState(0);
-  const [isPrevUnitSet, setIsPrevUnitSet] = useState(false);
   const [billData, setBillData] = useState(null);
   const [showModal, setShowModal] = useState(false);
-
+  const [typeOfModal, setTypeOfModal] = useState("form");
+  const [showFooter, setShowFooter] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit, setLimit] = useState({ label: 10, value: 10 });
   const handleCloseModal = () => {
     setShowModal(false);
     setBillData(null);
@@ -24,7 +33,7 @@ const Bill = ({ showAlertBox, setShowLoader }) => {
     setShowModal(true);
   };
 
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const apiUrl = import.meta.env.VITE_APP_API_URL;
 
   useEffect(() => {
     setShowLoader(true);
@@ -35,84 +44,197 @@ const Bill = ({ showAlertBox, setShowLoader }) => {
     if (customer_id === null) {
       setBills([]);
       setBillData(null);
-      setPrev_unit(0);
-      setIsPrevUnitSet(false);
+      setTotalPages(0);
     } else {
       fetchBillByCustomerId();
     }
-  }, [customer_id]);
+  }, [customer_id, page, limit]);
 
   const fetchCustomers = async () => {
     try {
+      setShowLoader(true);
       const res = await axios.get(`${apiUrl}/customers`);
-      setCustomers(res.data);
+      if (res?.data?.isError) {
+        toast.error("Error fetching customers");
+      } else {
+        const data = res?.data?.data;
+        setCustomers(data);
+      }
       setShowLoader(false);
     } catch (error) {
       setShowLoader(false);
+      setCustomers([]);
       console.error("Error fetching customers:", error);
-      showAlertBox("Error fetching customers");
+      toast.error("Error fetching customers");
     }
   };
 
   const fetchBillByCustomerId = async () => {
     try {
       setShowLoader(true);
+      const params = new URLSearchParams({
+        page,
+        limit: limit?.value || 10,
+        customer_id: customer_id?.value,
+      });
       const res = await axios.get(
-        `${apiUrl}/bills/get-bill-by-customer-id/${customer_id?.value}`
+        `${apiUrl}/bills/get-bill-by-customer-id?${params.toString()}`
       );
       if (!res?.data?.isError) {
         const data = res?.data?.data;
         setBills(data);
+        setTotalPages(res?.data?.totalPages);
         setBillData(null);
-        const lastUnit = data[0]?.current_unit || 0;
-        if (lastUnit) {
-          setPrev_unit(lastUnit);
-          setIsPrevUnitSet(true);
-        }
       }
       setShowLoader(false);
     } catch (error) {
       setShowLoader(false);
       console.error("Error fetching bills:", error);
-      showAlertBox("Error fetching bills");
+      toast.error("Error fetching bills");
     }
   };
 
   const generatePDF = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/bills/generate-pdf`, {
-        responseType: "blob",
+      // Loaded on demand so the PDF libraries aren't part of the page bundle.
+      const { default: jsPDF } = await import("jspdf");
+      await import("jspdf-autotable");
+      const doc = new jsPDF();
+      const customerName = customer_id.name;
+
+      // Add some basic text
+      doc.text(`Bill Report of ${customerName}`, 75, 20);
+
+      // Define the table columns and rows
+      const columns = [
+        "Meter No.",
+        "Customer",
+        "Current Unit",
+        "Previous Unit",
+        "Used Unit",
+        "Unit Per Rate",
+        "Total Price",
+        "Date",
+        "Comments",
+      ];
+      const rows = bills.map((bill) => {
+        const {
+          bill_no,
+          current_unit,
+          customer_id,
+          prev_unit,
+          used_unit,
+          unit_per_rate,
+          total_price,
+          comments,
+          date,
+        } = bill;
+        return [
+          bill_no,
+          customer_id.name,
+          current_unit,
+          prev_unit,
+          used_unit,
+          unit_per_rate,
+          total_price,
+          formatDate(date, "date"),
+          comments,
+        ];
       });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "bills.pdf");
-      document.body.appendChild(link);
-      link.click();
+
+      // Use autoTable to add the table to the PDF
+      doc.autoTable({
+        theme: "grid",
+        headStyles: {
+          fillColor: "black",
+          textColor: "white",
+          // fontStyle: headerStyles.fontStyle,
+          fontSize: 10, // Adjust the font size as needed
+          font: "circular", // Set the font family
+          halign: "center",
+        },
+        head: [columns],
+        body: rows,
+        startY: 30, // Position where the table should start
+      });
+
+      // Save the PDF
+      doc.save(`bill_report_${customerName}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
-      showAlertBox("Error generating PDF");
+      toast("Error generating PDF");
     }
   };
 
-  const generatePDFById = async (id) => {
-    try {
-      const response = await axios.get(
-        `${apiUrl}/bills/generate-pdf-by-lite-bill/${id}`,
-        {
-          responseType: "blob",
-        }
-      );
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "bills.pdf");
-      document.body.appendChild(link);
-      link.click();
-    } catch (error) {
-      console.error("Error generating PDF by ID:", error);
-      showAlertBox("Error generating PDF by ID");
-    }
+  const generatePDFById = async () => {
+    setTypeOfModal("table");
+    setShowFooter(true);
+    setShowModal(true);
+  };
+
+  const generateExcel = async () => {
+    // Loaded on demand so the xlsx library isn't part of the page bundle.
+    const XLSX = await import("xlsx");
+    // Create a new workbook
+    const workbook = XLSX.utils.book_new();
+
+    const rows = bills.map((bill) => {
+      const {
+        bill_no,
+        current_unit,
+        customer_id,
+        prev_unit,
+        used_unit,
+        unit_per_rate,
+        total_price,
+        comments,
+        date,
+      } = bill;
+      return {
+        "Meter No.": bill_no,
+        "Customer": customer_id.name,
+        "Current Unit": current_unit,
+        "Previous Unit": prev_unit,
+        "Used Unit": used_unit,
+        "Unit Per Rate": unit_per_rate,
+        "Total Price": total_price,
+        Date: formatDate(date, "date"),
+        Comments: comments,
+      };
+    });
+    console.log("rows", rows);
+    // Convert the data to a worksheet
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+
+    // Append the worksheet to the workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+
+    // Create a buffer for the workbook
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    // Create a Blob from the buffer
+    const dataBlob = new Blob([excelBuffer], {
+      type: "application/octet-stream",
+    });
+
+    // Create a link element for downloading the file
+    const url = window.URL.createObjectURL(dataBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    const customerName = customer_id?.name;
+    const fileName = `Bill Report of ${customerName}`;
+    link.download = `${fileName}.xlsx`;
+
+    // Append the link to the body and trigger the download
+    document.body.appendChild(link);
+    link.click();
+
+    // Cleanup
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   };
 
   useEffect(() => {
@@ -121,69 +243,139 @@ const Bill = ({ showAlertBox, setShowLoader }) => {
     }
   }, [billData]);
 
+  const bodyContainer = useMemo(() => {
+    const form = {
+      current_unit: billData?.current_unit,
+      prev_unit: billData?.prev_unit,
+      used_unit: billData?.used_unit,
+      unit_per_rate: billData?.unit_per_rate,
+      total_price: billData?.total_price,
+      comments: billData?.comments,
+    };
+    if (typeOfModal === "table") {
+      return (
+        <>
+          <NewBillTableView
+            titleDate={formatDateForTable(billData?.date)}
+            handleCloseModal={handleCloseModal}
+            tableValue={form}
+            customerName={customer_id?.name}
+            isNewBillGenerated={true}
+          />
+        </>
+      );
+    } else {
+      return (
+        <>
+          <Card>
+            <Card.Header className="customer-form">
+              <div className="center-item">
+                <h4 className="section-title">Bill Form</h4>
+              </div>
+            </Card.Header>
+            <Card.Body>
+              <BillForm
+                customer_id={customer_id}
+                billData={billData}
+                fetchBillByCustomerId={fetchBillByCustomerId}
+                handleCloseModal={handleCloseModal}
+                setShowLoader={setShowLoader}
+              />
+            </Card.Body>
+          </Card>
+        </>
+      );
+    }
+  }, [customer_id, billData, setShowLoader, typeOfModal]);
+
   return (
     <>
-      <Container>
-        <div className="center-item">
-          <h1 className="mt-4">Bill System</h1>
+      <Container className="app-container">
+        <div className="page-hero">
+          <div className="page-hero-copy">
+          <div className="page-hero-icon">
+            <IconFileText size={28} stroke={1.75} />
+          </div>
+          <div>
+            <p className="page-hero-eyebrow">Bills</p>
+            <h1 className="page-hero-title">Bill System</h1>
+            <p className="page-hero-subtitle">
+              Select a customer to view, export, or manage their bills.
+            </p>
+          </div>
+          </div>
+           <div className="page-hero-art" aria-hidden="true">
+                      <img src={homeBannerImage} alt="Bill illustration" />
+                    </div>
         </div>
-        <Row className="mb-4">
-          <Col md={{ span: 4, offset: 3 }}>
-            <CustomerSelector
-              customers={customers}
-              setCustomerId={setCustomerId}
-              customer_id={customer_id}
-            />
-          </Col>
-          <Col md={2} style={{ marginTop: "30px" }}>
-            <GeneratePDF disabled={(!customer_id?.value && bills.length === 0)} generatePDF={generatePDF} />
-          </Col>
-        </Row>
+        <Card className="mb-4">
+          <Card.Body>
+            <Row className="align-items-end g-3">
+              <Col md={6}>
+                <CustomerSelector
+                  customers={customers}
+                  setCustomerId={setCustomerId}
+                  customer_id={customer_id}
+                />
+              </Col>
+              <Col xs={6} md={3}>
+                <GeneratePDF
+                  disabled={!customer_id?.value && bills.length === 0}
+                  generatePDF={generatePDF}
+                />
+              </Col>
+              <Col xs={6} md={3}>
+                <GenerateExcel
+                  disabled={!customer_id?.value && bills.length === 0}
+                  generateExcel={generateExcel}
+                />
+              </Col>
+            </Row>
+          </Card.Body>
+        </Card>
         <Row>
           <Col>
             <Card>
               <Card.Header className="customer-form">
-                <div className="center-item">
-                  <h4>Bill Table</h4>
+                <div className="card-title-row">
+                  <div className="card-title-icon">
+                    <IconFileText size={20} stroke={1.75} />
+                  </div>
+                  <div className="card-title-text">
+                    <h4 className="section-title">Bill Table</h4>
+                    <span className="helper-text">
+                      Generated bills for the selected customer
+                    </span>
+                  </div>
                 </div>
               </Card.Header>
               <Card.Body>
                 <BillTable
                   bills={bills}
+                  page={page}
+                  setPage={setPage}
+                  totalPages={totalPages}
+                  setTotalPages={setTotalPages}
                   generatePDFById={generatePDFById}
-                  showAlertBox={showAlertBox}
                   fetchBills={fetchBillByCustomerId}
                   setBillData={setBillData}
                   setShowLoader={setShowLoader}
+                  limit={limit}
+                  setLimit={setLimit}
                 />
               </Card.Body>
             </Card>
           </Col>
         </Row>
-        <Modal show={showModal} onHide={handleCloseModal} centered>
-          <Modal.Body className="bill-modal-body">
-            <Card>
-              <Card.Header className="customer-form">
-                <div className="center-item">
-                  <h4>Bill Form</h4>
-                </div>
-              </Card.Header>
-              <Card.Body>
-                <BillForm
-                  prev_unit={prev_unit}
-                  setPrev_unit={setPrev_unit}
-                  isPrevUnitSet={isPrevUnitSet}
-                  customer_id={customer_id}
-                  showAlertBox={showAlertBox}
-                  billData={billData}
-                  fetchBillByCustomerId={fetchBillByCustomerId}
-                  handleCloseModal={handleCloseModal}
-                  setShowLoader={setShowLoader}
-                />
-              </Card.Body>
-            </Card>
-          </Modal.Body>
-        </Modal>
+        <TableModal
+          bodyContainer={bodyContainer}
+          disablePdfButton={typeOfModal != "table"}
+          showModal={showModal}
+          handleCloseModal={handleCloseModal}
+          setShowLoader={setShowLoader}
+          customer_id={customer_id}
+          showFooter={showFooter}
+        />
       </Container>
     </>
   );

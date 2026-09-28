@@ -1,16 +1,24 @@
 /* eslint-disable react/prop-types */
 // InputBoxes.js
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./InputBoxes.css"; // Ensure you create this CSS file for styling
-import { Button, Card, Col, Modal } from "react-bootstrap";
+import { Button, Card, Col, Row } from "react-bootstrap";
 import CustomerSelector from "../../CustomerSelector";
 import axios from "axios";
+import TableModal from "../../TableModal/TableModal";
 import NewBillTableView from "../../Bill/NewBillTableView";
-import { IconDownload, IconPlus, IconX } from "@tabler/icons-react";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import {
+  IconCash,
+  IconEye,
+  IconFileInvoice,
+  IconGauge,
+  IconPlus,
+  IconReceipt2,
+} from "@tabler/icons-react";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
-const InputBoxes = ({ showAlertBox, setShowLoader }) => {
+const InputBoxes = ({ setShowLoader }) => {
   const defaultFormValue = {
     current_unit: 0,
     prev_unit: 0,
@@ -19,6 +27,7 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
     total_price: 0,
     comments: "",
   };
+  const navigate = useNavigate();
   const textboxesRef = useRef([]);
   const [values, setValues] = useState(Array(6).fill(""));
   const [customers, setCustomers] = useState([]);
@@ -31,8 +40,9 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
   const [showModal, setShowModal] = useState(false);
   const [comments, setComments] = useState("");
   const [isNewBillGenerated, setIsNewBillGenerated] = useState(false);
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const tableRef = useRef(null);
+  const apiUrl = import.meta.env.VITE_APP_API_URL;
+  const [isClickOnPdfBtn, setIsClickOnPdfBtn] = useState(false);
+
   const handleCloseModal = () => {
     setShowModal(false);
     if (isNewBillGenerated && lastBillData) {
@@ -55,8 +65,11 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
   };
 
   useEffect(() => {
+    setValues(Array(6).fill(""));
+    setForm(defaultFormValue);
+    setNewValue(0);
+    setTotalValue(0);
     if (customer_id) {
-      setValues(Array(6).fill(""));
       // fetchLastBill();
       setCustomerName(customer_id?.name);
       setForm({
@@ -95,7 +108,7 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
       } else {
         if (numberWithDecimal?.length > 6) {
           const { prev_unit, unit_per_rate } = form;
-          if (numberWithDecimal && prev_unit && unit_per_rate) {
+          if (numberWithDecimal && unit_per_rate) {
             const calUnit = parseFloat(numberWithDecimal) - prev_unit;
             price = parseFloat(calUnit * unit_per_rate).toFixed(2);
             setForm({
@@ -105,7 +118,7 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
               unit_per_rate,
             });
             if (prev_unit > numberWithDecimal) {
-              showAlertBox("New unit is not greater than previous unit");
+              toast.warn("New unit is not greater than previous unit");
               price = 0;
               e.target.value = null;
               e.target.focus();
@@ -125,7 +138,6 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
           setTotalValue(price);
         } else {
           setTotalValue(price);
-          price = numberWithDecimal;
           setValues(newValues);
           if (
             e.target.value.length > 0 &&
@@ -145,6 +157,7 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
       const newValues = [...values];
       newValues[index] = "";
       setValues(newValues);
+      handleInput(index, e);
       if (index > 0) {
         const prevIndex = index === 0 ? index : index - 1;
         textboxesRef.current[prevIndex].focus();
@@ -172,71 +185,21 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
     try {
       setShowLoader(true);
       const res = await axios.get(`${apiUrl}/customers`);
-      setCustomers(res.data);
+      if (res?.data?.isError) {
+        toast.error("Error fetching customers");
+      } else {
+        const data = res?.data?.data;
+        setCustomers(data);
+        if (data?.length == 0) {
+          navigate("/customer");
+        }
+      }
       setShowLoader(false);
     } catch (error) {
       setShowLoader(false);
+      setCustomers([]);
       console.error("Error fetching customers:", error);
-      showAlertBox("Error fetching customers");
-    }
-  };
-
-  // const fetchLastBill = async () => {
-  //   try {
-  //     const res = await axios.get(
-  //       `${apiUrl}/bills/get-last-bill/${customer_id?.value}`
-  //     );
-  //     if (res?.data?.isError) {
-  //       setLastBillData(null);
-  //       showAlertBox(res?.data?.message);
-  //     } else {
-  //       setLastBillData(res.data?.data);
-  //       const lastBill = res?.data?.data;
-  //       const {current_unit= 0, unit_per_rate= 8 } = lastBill;
-  //       setForm({
-  //         ...form,
-  //         prev_unit: current_unit,
-  //         unit_per_rate,
-
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching customers:", error);
-  //     showAlertBox("Error fetching customers",);
-  //   }
-  // };
-
-  const handleDownloadPDF = () => {
-    var today = new Date();
-    setShowLoader(true);
-    if (tableRef.current) {
-      html2canvas(tableRef.current, { scale: 1.5 }).then((canvas) => {
-        // Increased scale for better quality
-        // Create a new jsPDF instance
-        const pdf = new jsPDF({
-          orientation: "p", // Portrait orientation
-          unit: "mm", // Unit of measurement
-          format: "a4", // A4 paper size
-        });
-
-        // Convert the canvas to an image
-        const imgData = canvas.toDataURL("image/png");
-
-        // Calculate the PDF dimensions based on A4 size
-        const imgWidth = 130; // Image width in mm
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-        // Adjust the height to make the table appear smaller
-        const scaleFactor = 1; // Adjust this factor to scale the image
-        const scaledImgHeight = imgHeight * scaleFactor;
-
-        // Add the image to the PDF with scaled height
-        pdf.addImage(imgData, "PNG", 40, 10, imgWidth, scaledImgHeight);
-
-        // Save the PDF
-        pdf.save(`bill_${customer_id?.name}_${today.getTime()}.pdf`);
-        setShowLoader(false);
-      });
+      toast.error("Error fetching customers");
     }
   };
 
@@ -252,7 +215,7 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
       if (res?.data?.isError) {
         setLastBillData(null);
         setIsNewBillGenerated(false);
-        showAlertBox(res?.data?.message);
+        toast.error(res?.data?.message);
       } else {
         setForm({
           ...form,
@@ -260,13 +223,13 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
         });
         setIsNewBillGenerated(true);
         setLastBillData(res.data?.data);
-        showAlertBox("New Bill Added Successfully", "success");
+        toast.success("New Bill Added Successfully");
         setShowLoader(false);
       }
     } catch (error) {
       setShowLoader(false);
       console.error("Error adding bill:", error);
-      showAlertBox("Error adding bill");
+      toast.error("Error adding bill");
     }
   };
 
@@ -274,150 +237,168 @@ const InputBoxes = ({ showAlertBox, setShowLoader }) => {
     fetchCustomers();
   }, []);
 
+  const bodyContainer = useMemo(() => {
+    return (
+      <>
+        <NewBillTableView
+          handleCloseModal={handleCloseModal}
+          tableValue={form}
+          comments={comments}
+          customerName={customerName}
+          setComments={setComments}
+          isNewBillGenerated={isNewBillGenerated}
+        />
+      </>
+    );
+  }, [comments, form, customerName, isNewBillGenerated]);
+
+  const newBillButton = (
+    <>
+      <Button
+        variant="outline-dark"
+        style={{ marginRight: "10px" }}
+        disabled={isNewBillGenerated}
+        type="submit"
+        onClick={addBill}
+      >
+        <IconPlus /> Add Bil
+      </Button>
+    </>
+  );
+
+  const showTotal = form?.prev_unit != null && newValue?.length > 6;
+
   return (
     <>
-      <Col className="center-item mt-5" sm={12}>
-        <div>
-          <div className="center-item mb-3">
-            <h2 className="new-bill-title">Add Your New Bill</h2>
+      <Card className="mx-auto home-bill-card">
+        <Card.Header className="customer-form">
+          <div className="card-title-row">
+            <div className="card-title-icon">
+              <IconFileInvoice size={20} stroke={1.75} />
+            </div>
+            <div className="card-title-text">
+              <h2 className="section-title new-bill-title">
+                Add Your New Bill
+              </h2>
+              <span className="helper-text">
+                Create a new electricity bill
+              </span>
+            </div>
           </div>
-          <Col
-            className="text-center mb-5"
-            md={{ span: 8, offset: 2 }}
-            sm={{ span: 8, offset: 2 }}
-          >
-            <CustomerSelector
-              customers={customers}
-              setCustomerId={setCustomerId}
-              customer_id={customer_id}
-            />
-            {/* <Form.Control.Feedback
-              style={{
-                display: lastBillData === null ? "block" : "none",
-                fontSize: "14px",
-                fontWeight: "bold",
-                fontFamily: "sans-serif",
-              }}
-              type="invalid"
-            >
-              No Bill Found For This Customer. Please Create New Bill
-            </Form.Control.Feedback> */}
-          </Col>
+        </Card.Header>
+        <Card.Body className="p-3 p-md-4">
+          <Row className="justify-content-center mb-4 customer-select-row">
+            <Col md={10} sm={12}>
+              <CustomerSelector
+                customers={customers || []}
+                setCustomerId={setCustomerId}
+                customer_id={customer_id}
+              />
+            </Col>
+          </Row>
           <Col md={12} sm={12}>
+            <span className="meter-reading-label text-center">
+              Meter Reading
+            </span>
             <div className="input-group input-group-sm input-box">
               {Array.from({ length: 6 }).map((_, index) => {
                 const isLast = index === 5;
                 return (
-                  <>
+                  <div className="otp-box-wrap" key={index}>
+                    {isLast && (
+                      <span className="otp-separator" aria-hidden="true">
+                        .
+                      </span>
+                    )}
                     <input
-                      key={index}
                       type="text"
-                      className={`textbox ${isLast ? "red-input-box" : ""}`}
+                      className={`textbox ${isLast ? "red-input-box" : ""} ${
+                        values[index] ? "otp-filled" : ""
+                      }`}
                       maxLength="1"
                       value={values[index]}
                       dir="rtl"
                       id={`meter-input-${index}`}
+                      aria-label={`Meter digit ${index + 1}`}
                       ref={(el) => (textboxesRef.current[index] = el)}
                       onInput={(e) => handleInput(index, e)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
                     />
-                  </>
+                  </div>
                 );
               })}
             </div>
           </Col>
 
-          {customer_id && form?.prev_unit && (
+          {customer_id && form?.prev_unit != null && (
             <>
-              <div className="center-item mt-3">
-                <h4 className="new-bill-title">
-                  Previous Bill :-{" "}
-                  <span style={{ color: "blue" }}> {form?.prev_unit}</span>
-                </h4>
-              </div>
-              <div className="center-item mt-3">
-                <h4 className="new-bill-title">
-                  Unit Rate :-{" "}
-                  <span style={{ color: "blue" }}>
-                    {" "}
-                    {customer_id?.default_unit_per_rate}
-                  </span>
-                </h4>
-              </div>
-              {totalValue > 6 && (
-                <div className="center-item mt-3">
-                  <h4 className="new-bill-title">
-                    Total Bill is :-{" "}
-                    <span style={{ color: "blue" }}>{totalValue || 0}</span>
-                  </h4>
+              <hr className="my-4" />
+              <p className="section-title mb-3">Bill Summary</p>
+              <div className="summary-cards">
+                <div className="summary-card">
+                  <div className="summary-card-icon">
+                    <IconReceipt2 size={22} stroke={1.75} />
+                  </div>
+                  <div>
+                    <p className="summary-card-label">Previous Bill</p>
+                    <p className="summary-card-value">{form?.prev_unit}</p>
+                  </div>
                 </div>
-              )}
-              <br />
-              {form?.prev_unit && newValue?.length > 6 && (
-                <div className="center-item mt-3">
+                <div className="summary-card accent">
+                  <div className="summary-card-icon">
+                    <IconGauge size={22} stroke={1.75} />
+                  </div>
+                  <div>
+                    <p className="summary-card-label">Unit Rate</p>
+                    <p className="summary-card-value">
+                      {customer_id?.default_unit_per_rate}
+                    </p>
+                  </div>
+                </div>
+                {showTotal && (
+                  <div className="summary-card total">
+                    <div className="summary-card-icon">
+                      <IconCash size={22} stroke={1.75} />
+                    </div>
+                    <div>
+                      <p className="summary-card-label">Total Bill</p>
+                      <p className="summary-card-value">
+                        {totalValue || 0}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {showTotal && (
+                <div className="center-item mt-4">
                   <Button
-                    variant="outline-dark"
+                    variant="dark"
                     type="button"
+                    className="btn-preview-bill px-4"
                     onClick={handleShowModal}
                   >
+                    <IconEye size={18} stroke={1.75} className="me-2" />
                     Preview Bill
                   </Button>
                 </div>
               )}
             </>
           )}
-        </div>
-      </Col>
-      <Modal
-        className="bill-modal-body"
-        show={showModal}
-        onHide={handleCloseModal}
-        centered
-      >
-        <Modal.Body>
-          <Card>
-            <Card.Body ref={tableRef} style={{ margin: "20px" }}>
-              <NewBillTableView
-                handleCloseModal={handleCloseModal}
-                tableValue={form}
-                comments={comments}
-                customerName={customerName}
-                setComments={setComments}
-                isNewBillGenerated={isNewBillGenerated}
-              />
-            </Card.Body>
-          </Card>
-        </Modal.Body>
-        <Modal.Footer className="m-2 center-item align-items-center">
-          <div>
-            <Button
-              variant="outline-dark"
-              style={{ marginRight: "10px" }}
-              disabled={isNewBillGenerated}
-              type="submit"
-              onClick={addBill}
-            >
-              <IconPlus /> Add Bil
-            </Button>
-            <Button
-              variant="outline-primary"
-              type="button"
-              disabled={!isNewBillGenerated}
-              style={{ marginRight: "10px" }}
-              onClick={handleDownloadPDF}
-            >
-              <IconDownload /> PDF
-            </Button>
-            <Button
-              variant="outline-danger"
-              type="button"
-              onClick={handleCloseModal}
-            >
-              <IconX /> Close
-            </Button>
-          </div>
-        </Modal.Footer>
-      </Modal>
+        </Card.Body>
+      </Card>
+      <TableModal
+        isClickOnPdfBtn={isClickOnPdfBtn}
+        setIsClickOnPdfBtn={setIsClickOnPdfBtn}
+        bodyContainer={bodyContainer}
+        newBillButton={newBillButton}
+        disablePdfButton={!isNewBillGenerated}
+        showModal={showModal}
+        handleCloseModal={handleCloseModal}
+        setShowLoader={setShowLoader}
+        customer_id={customer_id}
+        style={{ margin: "20px" }}
+      />
     </>
   );
 };
