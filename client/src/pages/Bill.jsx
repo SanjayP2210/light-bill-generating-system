@@ -11,9 +11,6 @@ import TableModal from "../components/TableModal/TableModal";
 import NewBillTableView from "../components/Bill/NewBillTableView";
 import { formatDate, formatDateForTable } from "../Utilities/Utils";
 import { toast } from "react-toastify";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
-import * as XLSX from "xlsx";
 import { IconFileText } from "@tabler/icons-react";
 import homeBannerImage from "../assets/home-screen-banner.png";
 
@@ -99,6 +96,9 @@ const Bill = ({ setShowLoader }) => {
 
   const generatePDF = async () => {
     try {
+      // Loaded on demand so the PDF libraries aren't part of the page bundle.
+      const { default: jsPDF } = await import("jspdf");
+      await import("jspdf-autotable");
       const doc = new jsPDF();
       const customerName = customer_id.name;
 
@@ -172,7 +172,9 @@ const Bill = ({ setShowLoader }) => {
     setShowModal(true);
   };
 
-  const generateExcel = () => {
+  const generateExcel = async () => {
+    // Loaded on demand so the xlsx library isn't part of the page bundle.
+    const XLSX = await import("xlsx");
     // Create a new workbook
     const workbook = XLSX.utils.book_new();
 

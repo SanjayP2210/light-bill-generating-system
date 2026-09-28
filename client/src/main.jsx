@@ -11,6 +11,8 @@ import { AuthProvider } from "./context/AuthContext.jsx";
 
 // Every axios call in the app must send the httpOnly auth cookie.
 axios.defaults.withCredentials = true;
+// Surface an error to the user instead of spinning forever on a stuck request.
+axios.defaults.timeout = 30000;
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <>

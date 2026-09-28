@@ -2,8 +2,6 @@
 import { Button, Card, Modal } from 'react-bootstrap';
 import { IconDownload, IconX } from "@tabler/icons-react";
 import { useRef } from 'react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 
 const TableModal = ({
   showModal,
@@ -18,10 +16,15 @@ const TableModal = ({
 }) => {
   const tableRef = useRef(null);
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     var today = new Date();
-    setShowLoader(true);
     if (tableRef.current) {
+      setShowLoader(true);
+      // Loaded on demand so html2canvas/jspdf aren't part of the page bundle.
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ]);
       html2canvas(tableRef.current, { scale: 1.5 }).then((canvas) => {
         // Increased scale for better quality
         // Create a new jsPDF instance

@@ -6,7 +6,7 @@ import UploadExcel from "../UploadExcel/UploadExcel";
 import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
 import { IconFileSpreadsheet, IconTable } from "@tabler/icons-react";
 import Select from "../Common/Select/Select";
-import { getSelectedFileData, loadData } from "../../Utilities/Utils";
+import { getSelectedFileData, loadData } from "../../Utilities/excelUtils";
 import { toast } from "react-toastify";
 import homeBannerImage from "../../assets/home-screen-banner.png";
 

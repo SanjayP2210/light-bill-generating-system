@@ -1,17 +1,13 @@
 import express from 'express';
 import crypto from 'crypto';
-import fs from 'fs';
 import multer from 'multer';
-import path, { dirname } from 'path';
-import { fileURLToPath } from 'url';
 import rateLimit from 'express-rate-limit';
 import User from '../models/User.js';
 import { protect } from '../middleware/auth.js';
 import sendTokenResponse from '../utils/sendTokenResponse.js';
 import sendEmail from '../utils/sendEmail.js';
+import uploadAvatar from '../utils/uploadAvatar.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 const router = express.Router();
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -141,22 +137,10 @@ router.put('/profile', protect, async (req, res) => {
 });
 
 // ------------------------------------------------------------------
-// Avatar upload (local disk storage — 2MB limit, images only)
+// Avatar upload (Cloudinary when configured, local disk in dev — 2MB limit, images only)
 // ------------------------------------------------------------------
-const avatarStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const dir = path.join(__dirname, '../uploads/avatars');
-        fs.mkdirSync(dir, { recursive: true });
-        cb(null, dir);
-    },
-    filename: (req, file, cb) => {
-        const ext = path.extname(file.originalname);
-        cb(null, `${req.user._id}-${Date.now()}${ext}`);
-    },
-});
-
 const avatarUpload = multer({
-    storage: avatarStorage,
+    storage: multer.memoryStorage(),
     limits: { fileSize: 2 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         if (!file.mimetype.startsWith('image/')) {
@@ -174,13 +158,18 @@ router.put('/avatar', protect, (req, res) => {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded', isError: true });
         }
-        const avatarUrl = `/uploads/avatars/${req.file.filename}`;
-        const user = await User.findByIdAndUpdate(
-            req.user._id,
-            { avatar: avatarUrl },
-            { new: true }
-        );
-        res.status(200).json({ isError: false, message: 'Avatar updated successfully', data: user.toSafeObject() });
+        try {
+            const avatarUrl = await uploadAvatar(req.file, req.user._id);
+            const user = await User.findByIdAndUpdate(
+                req.user._id,
+                { avatar: avatarUrl },
+                { new: true }
+            );
+            res.status(200).json({ isError: false, message: 'Avatar updated successfully', data: user.toSafeObject() });
+        } catch (error) {
+            console.error('[auth:avatar]', error);
+            res.status(500).json({ message: 'Could not upload avatar. Please try again.', isError: true });
+        }
     });
 });
 

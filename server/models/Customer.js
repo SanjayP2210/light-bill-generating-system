@@ -13,5 +13,8 @@ const CustomerSchema = new mongoose.Schema({
     isActive: { type: Boolean, required: true, default: true },
 });
 
+// Covers the active-customer list.
+CustomerSchema.index({ user_id: 1, isActive: 1 });
+
 const customer = mongoose.model('Customer', CustomerSchema);
 export default customer;

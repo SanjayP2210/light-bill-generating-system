@@ -1,17 +1,11 @@
 import express from 'express';
 import Bill from '../models/Bill.js';
-import PDFDocument from 'pdfkit';
 import multer from 'multer';
 import xlsx from 'xlsx';
-import fs from 'fs';
-import path, { dirname } from 'path';
-import { fileURLToPath } from 'url';
-import pkg from 'pdfkit-table';
+// pdfkit-table's default export is a PDFDocument subclass that adds doc.table().
+import PDFDocument from 'pdfkit-table';
 import Customer from '../models/Customer.js';
 
-const { Table } = pkg;
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 const router = express.Router();
 
 function convertToDate(dateStr) {
@@ -29,14 +23,16 @@ function convertToDate(dateStr) {
 
 const updateLastBillOfCustomer = async (customer_id, user_id) => {
     try {
-        const lastBill = await Bill.findOne({ customer_id, user_id }).sort({ _id: -1 });
+        const lastBill = await Bill.findOne({ customer_id, user_id })
+            .sort({ _id: -1 })
+            .select('current_unit')
+            .lean();
         const last_bill_unit = lastBill?.current_unit || 0;
-        const updatedCustomer = await Customer.findOneAndUpdate(
+        const result = await Customer.updateOne(
             { _id: customer_id, user_id },
-            { last_bill_unit: last_bill_unit },
-            { new: true }
+            { last_bill_unit: last_bill_unit }
         );
-        return updatedCustomer ? true : false;
+        return result.matchedCount > 0;
     } catch (error) {
         console.error('Error updating customer:', error);
         return false;
@@ -46,7 +42,10 @@ const updateLastBillOfCustomer = async (customer_id, user_id) => {
 // Get all bills belonging to the authenticated user
 router.get('/', async (req, res) => {
     try {
-        const bills = await Bill.find({ user_id: req.user._id }).populate('customer_id', 'name bill_no').sort({ date: -1 }).exec();
+        const bills = await Bill.find({ user_id: req.user._id })
+            .populate('customer_id', 'name bill_no')
+            .sort({ date: -1 })
+            .lean();
         res.json(bills);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -68,7 +67,7 @@ router.post('/', async (req, res) => {
     } = req.body;
 
     try {
-        const customer = await Customer.findOne({ _id: customer_id, user_id: req.user._id });
+        const customer = await Customer.exists({ _id: customer_id, user_id: req.user._id });
         if (!customer) {
             return res.status(403).json({
                 message: 'Selected customer was not found in your account',
@@ -167,17 +166,30 @@ router.put('/:id', async (req, res) => {
     }
 });
 
+const SORTABLE_BILL_FIELDS = new Set(['date', 'current_unit', 'prev_unit', 'total_price', 'used_unit', '_id']);
+
 // Get bills by customer ID (scoped to the authenticated user)
 router.get('/get-bill-by-customer-id/', async (req, res) => {
     try {
-        const { page = 1, limit = 10, sortBy = 'date', sortOrder = 'asc', customer_id = "" } = req.query;
+        const { sortBy = 'date', sortOrder = 'asc', customer_id = "" } = req.query;
+        const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+        const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 500);
 
-        const sortQuery = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+        const sortField = SORTABLE_BILL_FIELDS.has(sortBy) ? sortBy : 'date';
+        const sortQuery = { [sortField]: sortOrder === 'asc' ? 1 : -1 };
         const filter = { customer_id, user_id: req.user._id };
-        const bills = await Bill.find(filter).populate('customer_id', 'name bill_no')
-            .sort(sortQuery).limit(limit * 1)
-            .skip((page - 1) * limit).exec();
-        const count = await Bill.countDocuments(filter);
+
+        // The page and the total count are independent — run them in parallel.
+        const [bills, count] = await Promise.all([
+            Bill.find(filter)
+                .populate('customer_id', 'name bill_no')
+                .sort(sortQuery)
+                .skip((page - 1) * limit)
+                .limit(limit)
+                .lean(),
+            Bill.countDocuments(filter),
+        ]);
+
         res.json({
             data: bills,
             message: 'Bills retrieved successfully',
@@ -196,33 +208,32 @@ const formatDate = (date) => {
     return new Intl.DateTimeFormat('en-US', options).format(date);
 };
 
-// Generate PDF with table
-const generateTableForPDF = async (bills, filePath) => {
-    const doc = new PDFDocument();
-    doc.pipe(fs.createWriteStream(filePath));
+// Builds the bills table PDF in memory and streams it straight to the
+// response. Nothing is written to disk (Vercel's filesystem is read-only,
+// and a shared file path would mix up concurrent downloads).
+const sendBillsPdf = async (res, bills, fileName) => {
+    const doc = new PDFDocument({ margin: 30, size: 'A4' });
 
-    const data = bills.map(bill => [
-        bill.customer_id.name,
-        bill.current_unit,
-        bill.prev_unit,
-        bill.unit_per_rate,
-        bill.total_price,
-        formatDate(new Date(bill.date))
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    doc.pipe(res);
+
+    const rows = bills.map(bill => [
+        bill.customer_id?.name ?? '',
+        String(bill.current_unit ?? ''),
+        String(bill.prev_unit ?? ''),
+        String(bill.unit_per_rate ?? ''),
+        String(bill.total_price ?? ''),
+        bill.date ? formatDate(new Date(bill.date)) : '',
     ]);
 
-    const tableData = {
-        headers: ['Customer', 'Current Unit', 'Previous Unit', 'Unit Per Rate', 'Total Price', 'Date'],
-        rows: data
-    };
-
-    const table = new Table(doc, {
-        width: 500,
-        padding: 5,
-        columns: [100, 100, 100, 100, 100, 100]
-    });
-
-    table.add(tableData);
-    table.draw();
+    await doc.table(
+        {
+            headers: ['Customer', 'Current Unit', 'Previous Unit', 'Unit Per Rate', 'Total Price', 'Date'],
+            rows,
+        },
+        { width: 535, columnsSize: [110, 80, 80, 80, 80, 105] }
+    );
 
     doc.end();
 };
@@ -230,49 +241,32 @@ const generateTableForPDF = async (bills, filePath) => {
 // Generate PDF for all bills belonging to the authenticated user
 router.get('/generate-pdf', async (req, res) => {
     try {
-        const bills = await Bill.find({ user_id: req.user._id }).populate('customer_id');
-        const filePath = path.join(__dirname, '../files/bills.pdf');
-
-        await generateTableForPDF(bills, filePath);
-
-        res.download(filePath, (err) => {
-            if (err) {
-                res.status(500).json({ message: 'Error while downloading the file.', err });
-            } else {
-                fs.unlink(filePath, (unlinkErr) => {
-                    if (unlinkErr) console.error('Error deleting file:', unlinkErr);
-                });
-            }
-        });
+        const bills = await Bill.find({ user_id: req.user._id })
+            .populate('customer_id', 'name')
+            .sort({ date: -1 })
+            .lean();
+        await sendBillsPdf(res, bills, 'bills.pdf');
     } catch (err) {
-        res.status(500).json({ message: 'Error generating PDF: ' + err.message });
+        console.error('[bills:generate-pdf]', err);
+        if (!res.headersSent) res.status(500).json({ message: 'Error generating PDF: ' + err.message });
+        else res.end();
     }
 });
 
 // Generate PDF for a specific bill by ID (only if it belongs to the authenticated user)
 router.get('/generate-pdf-by-lite-bill/:id', async (req, res) => {
     try {
-        const id = req.params.id;
-        const bills = await Bill.find({ _id: id, user_id: req.user._id }).populate('customer_id');
+        const bills = await Bill.find({ _id: req.params.id, user_id: req.user._id })
+            .populate('customer_id', 'name')
+            .lean();
         if (bills.length === 0) {
             return res.status(404).json({ message: 'No bills found with the provided ID.' });
         }
-
-        const filePath = path.join(__dirname, '../files/bills.pdf');
-
-        await generateTableForPDF(bills, filePath);
-
-        res.download(filePath, (err) => {
-            if (err) {
-                res.status(500).json({ message: 'Error while downloading the file.', err });
-            } else {
-                fs.unlink(filePath, (unlinkErr) => {
-                    if (unlinkErr) console.error('Error deleting file:', unlinkErr);
-                });
-            }
-        });
+        await sendBillsPdf(res, bills, 'bill.pdf');
     } catch (err) {
-        res.status(500).json({ message: 'Error generating PDF: ' + err.message });
+        console.error('[bills:generate-pdf-by-lite-bill]', err);
+        if (!res.headersSent) res.status(500).json({ message: 'Error generating PDF: ' + err.message });
+        else res.end();
     }
 });
 
@@ -280,7 +274,7 @@ router.get('/generate-pdf-by-lite-bill/:id', async (req, res) => {
 router.get('/get-last-bill/:customer_id', async (req, res) => {
     try {
         const customer_id = req.params.customer_id;
-        const lastBill = await Bill.findOne({ customer_id, user_id: req.user._id }).sort({ _id: -1 });
+        const lastBill = await Bill.findOne({ customer_id, user_id: req.user._id }).sort({ _id: -1 }).lean();
         if (lastBill) {
             res.json({
                 data: lastBill,
@@ -299,69 +293,67 @@ router.get('/get-last-bill/:customer_id', async (req, res) => {
     }
 });
 
-// Handle Excel file uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
-    }
+// Excel uploads are parsed from memory — no temp files on disk.
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-const upload = multer({ storage });
-
-router.post('/upload-excel', upload.single('file'), async (req, res) => {
+router.post('/upload-excel', (req, res, next) => {
+    upload.single('file')(req, res, (err) => {
+        if (err) {
+            return res.status(400).json({ message: err.message || 'Invalid file', isError: true });
+        }
+        next();
+    });
+}, async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const filePath = req.file.path;
-    const workbook = xlsx.readFile(filePath);
+    try {
+        const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+        const parsedRows = [];
 
-    const sheetNames = workbook.SheetNames;
-    const parsedRows = [];
+        workbook.SheetNames.forEach(sheetName => {
+            const worksheet = workbook.Sheets[sheetName];
+            const data = xlsx.utils.sheet_to_json(worksheet, { header: 1 });
 
-    sheetNames.forEach(sheetName => {
-        const worksheet = workbook.Sheets[sheetName];
-        const data = xlsx.utils.sheet_to_json(worksheet, { header: 1 });
+            data.forEach((row, index) => {
+                if (index === 0) return; // Skip header row
+                const [
+                    customer_id,
+                    current_unit,
+                    prev_unit,
+                    unit_per_rate,
+                    total_price,
+                    used_unit,
+                    extra_unit,
+                    comments,
+                    date
+                ] = row;
 
-        data.forEach((row, index) => {
-            if (index === 0) return; // Skip header row
-            const [
-                customer_id,
-                current_unit,
-                prev_unit,
-                unit_per_rate,
-                total_price,
-                used_unit,
-                extra_unit,
-                comments,
-                date
-            ] = row;
-
-            parsedRows.push({
-                customer_id,
-                current_unit,
-                prev_unit,
-                unit_per_rate,
-                total_price,
-                used_unit,
-                extra_unit,
-                comments,
-                date: convertToDate(date)
+                parsedRows.push({
+                    customer_id,
+                    current_unit,
+                    prev_unit,
+                    unit_per_rate,
+                    total_price,
+                    used_unit,
+                    extra_unit,
+                    comments,
+                    date: convertToDate(date)
+                });
             });
         });
-    });
 
-    try {
         // Only rows whose customer actually belongs to the authenticated user are imported —
         // uploaded data can never assign bills to another user's customer.
         const requestedCustomerIds = [...new Set(parsedRows.map((row) => String(row.customer_id)))];
         const ownedCustomers = await Customer.find({
             _id: { $in: requestedCustomerIds },
             user_id: req.user._id,
-        }).select('_id');
+        }).select('_id').lean();
         const ownedIds = new Set(ownedCustomers.map((c) => String(c._id)));
 
         const bills = parsedRows
@@ -369,13 +361,14 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
             .map((row) => ({ ...row, user_id: req.user._id }));
 
         const savedBills = await Bill.insertMany(bills);
+
+        // Keep each affected customer's last_bill_unit in sync, in parallel.
+        const affectedCustomerIds = [...new Set(bills.map((b) => String(b.customer_id)))];
+        await Promise.all(affectedCustomerIds.map((id) => updateLastBillOfCustomer(id, req.user._id)));
+
         res.json({ message: 'Excel file data inserted successfully!', data: savedBills });
     } catch (err) {
         res.status(500).json({ message: 'Error inserting data from Excel file: ' + err.message });
-    } finally {
-        fs.unlink(filePath, (err) => {
-            if (err) console.error('Error deleting file:', err);
-        });
     }
 });
 
@@ -383,7 +376,7 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const id = req.params.id;
-        const deletedBill = await Bill.findOneAndDelete({ _id: id, user_id: req.user._id });
+        const deletedBill = await Bill.findOneAndDelete({ _id: id, user_id: req.user._id }).select('customer_id').lean();
         if (!deletedBill) {
             return res.status(404).json({ message: 'Bill not found' });
         }

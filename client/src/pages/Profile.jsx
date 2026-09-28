@@ -137,7 +137,10 @@ const Profile = () => {
     }
   };
 
-  const avatarSrc = user?.avatar ? `${apiOrigin}${user.avatar}` : null;
+  // Cloudinary avatars are absolute URLs; locally stored ones are server-relative.
+  const avatarSrc = user?.avatar
+    ? /^https?:\/\//.test(user.avatar) ? user.avatar : `${apiOrigin}${user.avatar}`
+    : null;
 
   return (
     <Container className="app-container">

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server/server.js NODE_ENV=development",
+    "start": "nodemon server/server.js",
     "dev": "node server/server.js",
     "build": "cross-env NODE_ENV=production webpack --mode production",
     "seed:admin": "node server/scripts/seedAdminAndMigrate.js"

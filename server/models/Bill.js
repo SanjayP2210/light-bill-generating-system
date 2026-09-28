@@ -13,5 +13,12 @@ const BillSchema = new mongoose.Schema({
     date: { type: Date, default: Date.now },
 });
 
+// Covers "last bill of a customer" (runs on every bill create/update/delete)
+// and the paginated per-customer bill list.
+BillSchema.index({ user_id: 1, customer_id: 1, _id: -1 });
+BillSchema.index({ user_id: 1, customer_id: 1, date: 1 });
+// Covers the full bill list sorted by date.
+BillSchema.index({ user_id: 1, date: -1 });
+
 const bill = mongoose.model('Bill', BillSchema);
 export default bill;

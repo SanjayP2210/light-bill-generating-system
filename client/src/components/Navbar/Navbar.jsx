@@ -62,7 +62,10 @@ const NavigationBar = () => {
     navigate("/login", { replace: true });
   };
 
-  const avatarSrc = user?.avatar ? `${apiOrigin}${user.avatar}` : null;
+  // Cloudinary avatars are absolute URLs; locally stored ones are server-relative.
+  const avatarSrc = user?.avatar
+    ? /^https?:\/\//.test(user.avatar) ? user.avatar : `${apiOrigin}${user.avatar}`
+    : null;
 
   const userAvatar = (
     <span className="avatar-circle">

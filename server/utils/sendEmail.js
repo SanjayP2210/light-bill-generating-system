@@ -16,6 +16,11 @@ const sendEmail = async ({ to, subject, html, text }) => {
         host: SMTP_HOST,
         port: Number(SMTP_PORT) || 587,
         secure: Number(SMTP_PORT) === 465,
+        // Fail within the serverless time limit instead of hanging on a slow
+        // or blocked SMTP server (nodemailer defaults are 2 min / 10 min).
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
         auth: {
             user: SMTP_EMAIL,
             pass: SMTP_PASSWORD,

@@ -9,5 +9,9 @@ const MasterItemSchema = new mongoose.Schema({
     isActive: { type: Boolean, required: true, default: true },
 });
 
+// Covers list + duplicate-check queries (user_id + type, sorted by value).
+MasterItemSchema.index({ user_id: 1, type: 1, isActive: 1, value: 1 });
+MasterItemSchema.index({ user_id: 1, type: 1, floor_no: 1, value: 1 });
+
 const MasterItem = mongoose.model('MasterItem', MasterItemSchema);
 export default MasterItem;

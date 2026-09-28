@@ -7,7 +7,7 @@ const router = express.Router();
 // Get all active customers belonging to the authenticated user
 router.get('/', async (req, res) => {
     try {
-        const customers = await Customer.find({ isActive: true, user_id: req.user._id });
+        const customers = await Customer.find({ isActive: true, user_id: req.user._id }).lean();
         res.json({
             data: customers,
             isError: false,
@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
 // Get all customers (active + inactive) belonging to the authenticated user
 router.get('/master-list', async (req, res) => {
     try {
-        const customers = await Customer.find({ user_id: req.user._id });
+        const customers = await Customer.find({ user_id: req.user._id }).lean();
         res.json({
             data: customers,
             isError: false,
@@ -131,9 +131,9 @@ router.delete('/:id', async (req, res) => {
     try {
         const id = req.params.id;
         // Check if the customer is referenced in the Bills collection
-        const billCount = await Bill.countDocuments({ customer_id: id, user_id: req.user._id });
+        const hasBills = await Bill.exists({ customer_id: id, user_id: req.user._id });
 
-        if (billCount > 0) {
+        if (hasBills) {
             // Customer is referenced in Orders, so do not delete
             return res.status(200).json({
                 message: 'Cannot delete customer. This customer is referenced in one or more bill.',

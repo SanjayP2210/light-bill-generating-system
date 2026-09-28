@@ -30,7 +30,7 @@ router.get('/:type', async (req, res) => {
         if (req.masterType === 'meter_no' && req.query.floor_no) {
             filter.floor_no = req.query.floor_no;
         }
-        const items = await MasterItem.find(filter).sort({ value: 1 });
+        const items = await MasterItem.find(filter).sort({ value: 1 }).lean();
         res.json({
             data: items,
             isError: false,
@@ -52,7 +52,7 @@ router.get('/:type/master-list', async (req, res) => {
         if (req.masterType === 'meter_no' && req.query.floor_no) {
             filter.floor_no = req.query.floor_no;
         }
-        const items = await MasterItem.find(filter).sort({ floor_no: 1, value: 1 });
+        const items = await MasterItem.find(filter).sort({ floor_no: 1, value: 1 }).lean();
         res.json({
             data: items,
             isError: false,
@@ -82,7 +82,7 @@ router.post('/:type', async (req, res) => {
         if (req.masterType === 'meter_no') {
             duplicateFilter.floor_no = floor_no;
         }
-        const existing = await MasterItem.findOne(duplicateFilter);
+        const existing = await MasterItem.exists(duplicateFilter);
         if (existing) {
             return res.status(200).json({ message: 'This value already exists', isError: true });
         }

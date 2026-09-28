@@ -1,21 +1,24 @@
 import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-dom";
 import NavigationBar from "./components/Navbar/Navbar";
-import Home from "./pages/Home";
-import Customers from "./pages/Customers";
-import Bill from "./pages/Bill";
 import "./App.css";
-import UploadExcellData from "./components/UploadExcellData/UploadExcellData";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import Loader from "./components/Loader/Loader";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { useAuth } from "./context/AuthContext";
 import { GuestRoute, ProtectedRoute } from "./components/ProtectedRoute";
+// Login/Register are the entry pages for guests, so they stay in the main bundle.
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import Profile from "./pages/Profile";
-import UserManagement from "./pages/UserManagement";
-import Masters from "./pages/Masters";
+
+// Every other page is split into its own chunk and downloaded on first visit.
+const Home = lazy(() => import("./pages/Home"));
+const Customers = lazy(() => import("./pages/Customers"));
+const Bill = lazy(() => import("./pages/Bill"));
+const UploadExcellData = lazy(() => import("./components/UploadExcellData/UploadExcellData"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Profile = lazy(() => import("./pages/Profile"));
+const UserManagement = lazy(() => import("./pages/UserManagement"));
+const Masters = lazy(() => import("./pages/Masters"));
 
 const App = () => {
   const [showLoader, setShowLoader] = useState(false);
@@ -26,6 +29,7 @@ const App = () => {
           <NavigationBar />
           <Loader visible={showLoader} />
           <div className={`${isAuthenticated ? "app-shell" : ""}`}>
+            <Suspense fallback={<Loader visible />}>
             <Routes>
               <Route
                 path="/login"
@@ -80,6 +84,7 @@ const App = () => {
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            </Suspense>
           </div>
       </Router>
     </>
