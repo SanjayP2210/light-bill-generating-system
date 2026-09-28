@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 0 140 140" width="140" height="140">
+  <title>LiteBill</title>
+  <!-- Wires -->
+  <g fill="none" stroke="#9aa3b2" stroke-width="3" stroke-linecap="round">
+    <path d="M36 112 V124 Q36 132 30 136"/>
+    <path d="M48 112 V124 Q48 132 45 136"/>
+    <path d="M60 112 V136"/>
+    <path d="M72 112 V124 Q72 132 75 136"/>
+    <path d="M84 112 V124 Q84 132 90 136"/>
+  </g>
+  <g fill="#f6b928">
+    <rect x="33" y="110" width="6" height="5" rx="1"/>
+    <rect x="45" y="110" width="6" height="5" rx="1"/>
+    <rect x="57" y="110" width="6" height="5" rx="1"/>
+    <rect x="69" y="110" width="6" height="5" rx="1"/>
+    <rect x="81" y="110" width="6" height="5" rx="1"/>
+  </g>
+  <!-- Terminal block -->
+  <rect x="24" y="84" width="72" height="30" rx="7" fill="#2d2b38"/>
+  <g fill="#e7e9ef">
+    <rect x="31" y="91" width="10" height="17" rx="3"/>
+    <rect x="43" y="91" width="10" height="17" rx="3"/>
+    <rect x="55" y="91" width="10" height="17" rx="3"/>
+    <rect x="67" y="91" width="10" height="17" rx="3"/>
+    <rect x="79" y="91" width="10" height="17" rx="3"/>
+  </g>
+  <g fill="#4a4664">
+    <circle cx="36" cy="96" r="2"/><circle cx="36" cy="103" r="2"/>
+    <circle cx="48" cy="96" r="2"/><circle cx="48" cy="103" r="2"/>
+    <circle cx="60" cy="96" r="2"/><circle cx="60" cy="103" r="2"/>
+    <circle cx="72" cy="96" r="2"/><circle cx="72" cy="103" r="2"/>
+    <circle cx="84" cy="96" r="2"/><circle cx="84" cy="103" r="2"/>
+  </g>
+  <!-- Casing -->
+  <rect x="10" y="9" width="100" height="84" rx="16" fill="#5f8f2e"/>
+  <rect x="10" y="5" width="100" height="84" rx="16" fill="#8cc152"/>
+  <!-- Face -->
+  <rect x="19" y="13" width="82" height="68" rx="9" fill="#4a4664"/>
+  <!-- Screen + bolt -->
+  <rect x="28" y="19" width="64" height="25" rx="4" fill="#e4e9f2" stroke="#2f2c40" stroke-width="1.5"/>
+  <polygon points="63,22 53,34 59,34 56,42 67,29.5 61,29.5" fill="#f6b928"/>
+  <!-- Indicator lights -->
+  <circle cx="36" cy="54" r="4.2" fill="#c8e46b"/>
+  <circle cx="48" cy="54" r="4.2" fill="#f5c542"/>
+  <circle cx="60" cy="54" r="4.2" fill="#c8e46b"/>
+  <circle cx="72" cy="54" r="4.2" fill="#f5c542"/>
+  <circle cx="84" cy="54" r="4.2" fill="#c8e46b"/>
+  <!-- Reading bar -->
+  <rect x="34" y="64" width="52" height="3.5" rx="1.75" fill="#8cc152"/>
+</svg>

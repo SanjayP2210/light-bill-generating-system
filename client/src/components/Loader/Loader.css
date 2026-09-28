@@ -1,122 +1,131 @@
+/* Colors sampled from the favicon (src/assets/images/logo5.png). */
 .spinner-div {
+    --meter-green: #8cc152;
+    --meter-green-dark: #5f8f2e;
+    --meter-face: #4a4664;
+    --meter-screen: #e4e9f2;
+    --meter-bolt: #f6b928;
+    --meter-dot-green: #c8e46b;
+    --meter-dot-amber: #f5c542;
+    --meter-terminal: #2d2b38;
+    --meter-socket: #e7e9ef;
+    --meter-wire: #9aa3b2;
+    --meter-label: var(--color-text-secondary, #64748b);
+
     position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background-color: rgba(248, 250, 252, 0.85);
-    backdrop-filter: blur(1px);
+    backdrop-filter: blur(2px);
     z-index: 9899999;
-    cursor: pointer;
-
+    cursor: progress;
 }
 
-.loader {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+.meter-loader {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-
-    &::before,
-    &::after {
-        content: '';
-        position: absolute;
-        border: 3px solid #2563eb;
-        border-radius: 50%;
-
-    }
-
-    &::before {
-        width: 55px;
-        height: 20px;
-        animation: animate-inner 1.7s linear infinite;
-    }
-
-    &::after {
-        width: 60px;
-        height: 20px;
-        animation: animate-outer 2s linear infinite;
-    }
+    gap: 10px;
 }
 
-.loader2 {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    &::before,
-    &::after {
-        content: '';
-        position: absolute;
-        border: 3px solid #2563eb;
-        border-radius: 50%;
-
-    }
-
-    &::before {
-        animation: animate-inner 1.4s linear infinite;
-    }
-
-    &::after {
-        width: 80px;
-        height: 20px;
-        animation: animate-outer 3s linear infinite;
-    }
+.meter-loader-svg {
+    overflow: visible;
+    animation: meter-float 2.4s ease-in-out infinite;
+    filter: drop-shadow(0 10px 14px rgba(15, 23, 42, 0.14));
 }
 
-.loader3 {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    &::after {
-        content: '';
-        position: absolute;
-        border: 3px solid #2563eb;
-        border-radius: 50%;
-
-    }
-
-
-    &::after {
-        width: 80px;
-        height: 20px;
-        animation: animate-inner 3s linear infinite;
-    }
+.meter-loader-label {
+    font-family: 'Inter', 'Poppins', system-ui, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--meter-label);
 }
 
-@keyframes animate-inner {
-    from {
-        transform: rotate(0deg);
-    }
+/* ---- Static parts ---- */
+.meter-casing { fill: var(--meter-green); }
+.meter-casing-shadow { fill: var(--meter-green-dark); }
+.meter-face { fill: var(--meter-face); }
+.meter-screen { fill: var(--meter-screen); stroke: #2f2c40; stroke-width: 1.5; }
+.meter-terminal { fill: var(--meter-terminal); }
+.meter-socket { fill: var(--meter-socket); }
+.meter-socket-hole { fill: var(--meter-face); }
+.meter-connector { fill: var(--meter-bolt); }
+.meter-bar-track { fill: rgba(140, 193, 82, 0.25); }
 
-    to {
-        transform: rotate(360deg);
-    }
+/* ---- Animated parts ---- */
+
+/* Bolt pulses like a live display. */
+.meter-bolt {
+    fill: var(--meter-bolt);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: meter-bolt 1.2s ease-in-out infinite;
 }
 
-@keyframes animate-outer {
-    from {
-        transform: rotate(0deg);
-    }
+/* Indicator lights run left → right. */
+.meter-dot {
+    opacity: 0.35;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: meter-dot 1.2s ease-in-out infinite;
+}
+.meter-dot-green { fill: var(--meter-dot-green); }
+.meter-dot-amber { fill: var(--meter-dot-amber); }
 
-    to {
-        transform: rotate(-360deg);
+/* Reading bar fills, then resets. */
+.meter-bar-fill {
+    fill: var(--meter-green);
+    transform-box: fill-box;
+    transform-origin: left center;
+    animation: meter-bar 1.8s ease-in-out infinite;
+}
+
+/* Current flows down the wires. */
+.meter-wires path {
+    fill: none;
+    stroke: var(--meter-wire);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-dasharray: 4 5;
+    animation: meter-current 0.9s linear infinite;
+}
+
+@keyframes meter-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+@keyframes meter-bolt {
+    0%, 100% { opacity: 0.55; transform: scale(0.9); }
+    50% { opacity: 1; transform: scale(1.12); filter: drop-shadow(0 0 3px rgba(246, 185, 40, 0.9)); }
+}
+
+@keyframes meter-dot {
+    0%, 60%, 100% { opacity: 0.35; transform: scale(1); }
+    25% { opacity: 1; transform: scale(1.25); filter: drop-shadow(0 0 3px rgba(245, 197, 66, 0.9)); }
+}
+
+@keyframes meter-bar {
+    0% { transform: scaleX(0); }
+    70% { transform: scaleX(1); }
+    100% { transform: scaleX(1); opacity: 0; }
+}
+
+@keyframes meter-current {
+    to { stroke-dashoffset: -18; }
+}
+
+/* Respect the OS "reduce motion" setting: keep a gentle pulse only. */
+@media (prefers-reduced-motion: reduce) {
+    .meter-loader-svg,
+    .meter-dot,
+    .meter-bar-fill,
+    .meter-wires path {
+        animation: none;
     }
+    .meter-dot { opacity: 1; }
+    .meter-bolt { animation-duration: 2.4s; }
 }
